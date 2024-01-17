@@ -6,11 +6,6 @@ def ENV_CONFIG_GIT_SOURCE = 'https://github.com/thfai2000/sample-app-configurati
 pipeline {
     agent any
 
-    parameters {
-        choice(name: 'WHICH_ENV', choices: [1,2,3,6], description: 'Select the environment')
-    }
-
-
     stages {
 
         stage('Checkout Env Config') {
@@ -29,7 +24,7 @@ pipeline {
                 
                 input(
                     message: 'Provide the build information',
-                    ok "Continue",
+                    ok: "Continue",
                     parameters [
                         string(defaultValue: 'None',
                                         description: 'Path of config file',
