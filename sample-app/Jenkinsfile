@@ -22,10 +22,9 @@ pipeline {
         stage('Input') {
             steps {
                 
-                input(
-                    message: 'Provide the build information',
+                input(message: 'Provide the build information',
                     ok: "Continue",
-                    parameters [
+                    parameters: [
                         string(defaultValue: 'None',
                                         description: 'Path of config file',
                                         name: 'Config')
