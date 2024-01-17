@@ -27,7 +27,7 @@ pipeline {
         stage('Input') {
             steps {
                 dir('env-config') {
-                    scripts {
+                    script {
                         folderNames = getFolderNames()
                         snapshotVersions = getSnapshotVersions()
                     }
