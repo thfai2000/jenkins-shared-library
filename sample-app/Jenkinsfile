@@ -41,7 +41,7 @@ pipeline {
                         snapshotVersions = json.findAll { it.type == 'file' }.collect { it.name }
                     }
                 }
-                cho "snapshotVersions: $snapshotVersions"
+                echo "snapshotVersions: $snapshotVersions"
             }
         }
 
