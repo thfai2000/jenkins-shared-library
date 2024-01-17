@@ -23,7 +23,7 @@ pipeline {
                             submoduleCfg: [],
                             userRemoteConfigs: [[url: ENV_CONFIG_GIT_SOURCE]]])
                     script {
-                        folderNames = sh(script: "ls -d */ | xargs -n 1 basename", returnStdout: true).trim().split('\n')
+                        folderNames = sh(script: "ls -d */ | xargs -n 1 basename", returnStdout: true).trim().split("\n")
                     }
        
                 }
