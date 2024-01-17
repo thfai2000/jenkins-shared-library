@@ -28,8 +28,8 @@ pipeline {
             steps {
                 
                 input(
-                    id: 'userInput', 
                     message: 'Provide the build information',
+                    ok "Continue",
                     parameters [
                         string(defaultValue: 'None',
                                         description: 'Path of config file',
