@@ -30,8 +30,8 @@ pipeline {
                     }
        
                 }
-                
-                echo "folderNames: $folderNames"
+                echo "type: ${folderNames.getClass()}"
+                echo "folderNames: ${folderNames}"
                 script {
                     
                     def treeApiUrl = "https://api.github.com/repos/$VERSION_SNAPSHOT_REPO_NAME/contents/$VERSION_SNAPSHOT_FOLDER_NAME?ref=$GIT_BRANCH"
