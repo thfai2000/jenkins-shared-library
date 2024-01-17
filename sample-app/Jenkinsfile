@@ -46,8 +46,8 @@ pipeline {
                 input(message: 'Provide the build information',
                     ok: "Continue",
                     parameters: [
-                        choice(name: 'WHICH_ENV', choices: folderNames, description: 'Select the environment'),
-                        choice(name: 'VERSION_SNAPSHOT', choices: snapshotVersions, description: 'Select the snapshot version')
+                        choice(name: 'WHICH_ENV', choices: Arrays.asList(folderNames), description: 'Select the environment'),
+                        choice(name: 'VERSION_SNAPSHOT', choices: Arrays.asList(snapshotVersions), description: 'Select the snapshot version')
                     ]
                 )
             }
