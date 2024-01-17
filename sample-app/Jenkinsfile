@@ -2,8 +2,8 @@ def VERSION_SNAPSHOT_REPO_NAME = "thfai2000/version_snapshots"
 def VERSION_SNAPSHOT_FOLDER_NAME = "sample-app"
 def GIT_BRANCH = env.BRANCH_NAME
 def ENV_CONFIG_GIT_SOURCE = 'https://github.com/thfai2000/sample-app-configuration.git'
-def folderNames
-def snapshotVersions
+def folderNames = []
+def snapshotVersions = []
 
 pipeline {
     agent any
