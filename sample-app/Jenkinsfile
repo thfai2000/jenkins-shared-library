@@ -1,25 +1,26 @@
+def folderNames = []
+def snapshotVersions = []
+
 pipeline {
     agent any
 
     environment { 
         VERSION_SNAPSHOT_REPO_NAME = "thfai2000/version_snapshots"
         VERSION_SNAPSHOT_FOLDER_NAME = "sample-app"
-        GIT_BRANCH = env.BRANCH_NAME
         ENV_CONFIG_GIT_SOURCE = 'https://github.com/thfai2000/sample-app-configuration.git'
-        folderNames = []
-        snapshotVersions = []
+
     }
 
     stages {
 
         stage('Checkout Env Config') {
             steps {
-                echo "GIT_BRANCH: $GIT_BRANCH"
+                echo "GIT_BRANCH: ${env.BRANCH_NAME}"
                 echo "VERSION_SNAPSHOT_REPO_NAME: $VERSION_SNAPSHOT_REPO_NAME"
                 dir('env-config') {
 
                     checkout([$class: 'GitSCM',
-                            branches: [[name: GIT_BRANCH]],
+                            branches: [[name: env.BRANCH_NAME]],
                             doGenerateSubmoduleConfigurations: false,
                             extensions: [],
                             submoduleCfg: [],
