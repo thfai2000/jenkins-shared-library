@@ -45,11 +45,6 @@ pipeline {
                     }
                 }
                 echo "snapshotVersions: $snapshotVersions"
-            }
-        }
-
-        stage('Input') {
-            steps {
                 input(message: 'Provide the build information',
                     ok: "Continue",
                     parameters: [
@@ -57,7 +52,6 @@ pipeline {
                         choice(name: 'VERSION_SNAPSHOT', choices: snapshotVersions, description: 'Select the snapshot version')
                     ]
                 )
-                
             }
         }
         
