@@ -29,6 +29,10 @@ pipeline {
                 dir('env-config') {
                     script {
                         folderNames = getFolderNames()
+
+                        echo "VERSION_SNAPSHOT_REPO_NAME: $VERSION_SNAPSHOT_REPO_NAME"
+                        echo "folderNames: $folderNames"
+
                         snapshotVersions = getSnapshotVersions()
                     }
                     input(message: 'Provide the build information',
@@ -82,7 +86,6 @@ def getFolderNames() {
 }
 
 def getSnapshotVersions() {
-    def gitSourceDirectory = '/path/to/git/source/directory' // Replace with your actual Git source directory
     def treeApiUrl = "https://api.github.com/repos/$VERSION_SNAPSHOT_REPO_NAME/contents/$VERSION_SNAPSHOT_FOLDER_NAME?ref=$GIT_BRANCH"
     
     def response = httpRequest(url: treeApiUrl, httpMode: 'GET', authentication: 'your_credentials')
@@ -95,7 +98,6 @@ def getSnapshotVersions() {
 }
 
 def getSnapshotUrl(version) {
-    def gitSourceDirectory = '/path/to/git/source/directory' // Replace with your actual Git source directory
     def snapshotUrl = "https://raw.githubusercontent.com/$VERSION_SNAPSHOT_REPO_NAME/$GIT_BRANCH/$VERSION_SNAPSHOT_FOLDER_NAME/$version"
     return snapshotUrl
 }
