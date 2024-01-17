@@ -43,7 +43,7 @@ pipeline {
         }
          stage('Loop through Artifacts') {
             steps {
-                node {
+                script {
                     def artifacts = readYaml(url: getSnapshotUrl(VERSION_SNAPSHOT))
 
                     for (def artifact in artifacts) {
