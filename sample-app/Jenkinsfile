@@ -1,6 +1,3 @@
-def folderNames = ''
-def snapshotVersions = ''
-
 pipeline {
     agent any
 
@@ -26,7 +23,7 @@ pipeline {
                             submoduleCfg: [],
                             userRemoteConfigs: [[url: ENV_CONFIG_GIT_SOURCE]]])
                     script {
-                        folderNames = sh(script: "ls -d */ | xargs -n 1 basename", returnStdout: true).trim()
+                        def folderNames = sh(script: "ls -d */ | xargs -n 1 basename", returnStdout: true).trim()
                     }
        
                 }
@@ -43,7 +40,7 @@ pipeline {
                         def json = readJSON(text: response.content)
                         files = json.findAll { it.type == 'file' }.collect { it.name }
                     }
-                    snapshotVersions = files.join("\n")
+                    def snapshotVersions = files.join("\n")
                 }
                 echo "snapshotVersions: $snapshotVersions"
                 input(message: 'Provide the build information',
