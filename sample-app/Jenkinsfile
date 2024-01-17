@@ -23,7 +23,7 @@ pipeline {
                             submoduleCfg: [],
                             userRemoteConfigs: [[url: ENV_CONFIG_GIT_SOURCE]]])
                     script {
-                        def folderNames = sh(script: "ls -d */ | xargs -n 1 basename", returnStdout: true).trim()
+                        folderNames = sh(script: "ls -d */ | xargs -n 1 basename", returnStdout: true).trim().split("\n")
                     }
        
                 }
@@ -40,14 +40,14 @@ pipeline {
                         def json = readJSON(text: response.content)
                         files = json.findAll { it.type == 'file' }.collect { it.name }
                     }
-                    def snapshotVersions = files.join("\n")
+                    snapshotVersions = files
                 }
                 echo "snapshotVersions: $snapshotVersions"
                 input(message: 'Provide the build information',
                     ok: "Continue",
                     parameters: [
-                        choice(name: 'WHICH_ENV', choices: folderNames.split("\n"), description: 'Select the environment'),
-                        choice(name: 'VERSION_SNAPSHOT', choices: snapshotVersions.split("\n"), description: 'Select the snapshot version')
+                        choice(name: 'WHICH_ENV', choices: folderNames, description: 'Select the environment'),
+                        choice(name: 'VERSION_SNAPSHOT', choices: snapshotVersions, description: 'Select the snapshot version')
                     ]
                 )
             }
