@@ -1,3 +1,5 @@
+def params
+
 pipeline {
     agent any
 
@@ -43,11 +45,11 @@ pipeline {
                     snapshotVersions = files
                 }
                 echo "snapshotVersions: $snapshotVersions"
-                input(message: 'Provide the build information',
+                params = input(message: 'Provide the build information',
                     ok: "Continue",
                     parameters: [
-                        choice(name: 'WHICH_ENV', choices: Arrays.asList(folderNames), description: 'Select the environment'),
-                        choice(name: 'VERSION_SNAPSHOT', choices: snapshotVersions, description: 'Select the snapshot version')
+                        choice(name: 'which_env', choices: Arrays.asList(folderNames), description: 'Select the environment'),
+                        choice(name: 'selected_version_snapshot', choices: snapshotVersions, description: 'Select the snapshot version')
                     ]
                 )
             }
@@ -56,11 +58,11 @@ pipeline {
         stage('Loop through Artifacts') {
             steps {
                 script {
-                    def artifacts = readYaml(url: getSnapshotUrl(VERSION_SNAPSHOT))
+                    def artifacts = readYaml(url: getSnapshotUrl(params.selected_version_snapshot))
 
                     for (def artifact in artifacts) {
                         stage("Artifact: ${artifact.name}") {
-                            def targetFolder = sh(script: 'dirname $0', returnStdout: true).trim() + "/${params.WHICH_ENV}"
+                            def targetFolder = sh(script: 'dirname $0', returnStdout: true).trim() + "/${params.which_env}"
                             def hostYamlFiles = findFiles(glob: "${targetFolder}/hosts/*.yaml")
 
                             for (def hostYamlFile in hostYamlFiles) {
