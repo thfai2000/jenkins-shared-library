@@ -97,51 +97,50 @@ pipeline {
 
 
 def processComponent(currentArtifact, hostYamlFiles) {
+
+    def stageMap = [:]  // Map to store parallel stages
+
+    for (def hostYamlFile in hostYamlFiles) {
+        def hostYaml = readYaml(file: hostYamlFile.path)
+        def hostComponentsYaml = hostYaml.host_components
+        
+        for (def componentYaml in hostComponentsYaml) {
+            if (componentYaml.name == currentArtifact.name) {
+                echo "Artifact '${currentArtifact.name}' found in Host YAML: ${hostYamlFile.name}"
+                stageMap["Host: ${hostYamlFile.name}"] = processComponentOnMachine(currentArtifact, hostYaml, componentYaml ) 
+            }
+        }
+    }
+
+
     return {
                                 
         echo currentArtifact.name
-        script {
 
-            // def stageMap = [:]  // Map to store parallel stages
+        stages {
+            stage{
+                steps {
 
-            for (def hostYamlFile in hostYamlFiles) {
-                def hostYaml = readYaml(file: hostYamlFile.path)
-                def hostComponentsYaml = hostYaml.host_components
-                
-
-                for (def componentYaml in hostComponentsYaml) {
-                    if (componentYaml.name == currentArtifact.name) {
-                        echo "Artifact '${currentArtifact.name}' found in Host YAML: ${hostYamlFile.name}"
-
-                        stage{
-                            steps {
-
-                                echo "download"
-                            }
-                        }
-
-                        stage{
-                            steps {
-
-                                echo "install"
-                            }
-                        }
-                        // stageMap["Machine: ${hostYaml.hostname}"] = processComponentOnMachine(currentArtifact, hostYaml, componentYaml)
-                        
-                    }
+                    echo "download"
                 }
             }
-            // parallel stageMap
+
+            stage{
+                steps {
+
+                    echo "install"
+                }
+            }
         }
 
     }
 }
 
-// def processComponentOnMachine(currentArtifact, hostYaml, componentYaml ) {
-//     return {
-//         echo "install machine ${hostYaml.hostname}"
-//     }
-// }
+def processComponentOnMachine(currentArtifact, hostYaml, componentYaml ) {
+    return {
+        echo "install machine ${hostYaml.hostname}"
+    }
+}
 
 // def getFolderNames() {
     
