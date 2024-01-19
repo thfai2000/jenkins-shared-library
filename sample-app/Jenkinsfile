@@ -100,10 +100,12 @@ def processComponent(currentArtifact, hostYamlFiles) {
     return {
                                 
         echo currentArtifact.name
+        def stageMap = [:]  // Map to store parallel stages
+
         for (def hostYamlFile in hostYamlFiles) {
             def hostYaml = readYaml(file: hostYamlFile.path)
             def hostComponentsYaml = hostYaml.host_components
-            def stageMap = [:]  // Map to store parallel stages
+            
 
             for (def componentYaml in hostComponentsYaml) {
                 if (componentYaml.name == currentArtifact.name) {
@@ -113,8 +115,8 @@ def processComponent(currentArtifact, hostYamlFiles) {
                     
                 }
             }
-            parallel stageMap
         }
+        parallel stageMap
 
     }
 }
