@@ -78,30 +78,30 @@ pipeline {
                         sh(script: "ls ${targetFolder}")
                         hostYamlFiles = findFiles(glob: "${targetFolder}/hosts/*.yaml")
 
-                    }
-                
-                    def stageMap = [:]  // Map to store parallel stages
-                    for (def artifact in artifacts) {
-                        
-                        stageMap["Artifact: ${artifact.name}"] = {
+                        def stageMap = [:]  // Map to store parallel stages
+                        for (def artifact in artifacts) {
                             
-                            echo artifact.name
-                            for (def hostYamlFile in hostYamlFiles) {
-                                def hostYaml = readYaml(file: hostYamlFile.path)
-                                def hostComponents = hostYaml.host_components
+                            stageMap["Artifact: ${artifact.name}"] = {
+                                
+                                echo artifact.name
+                                for (def hostYamlFile in hostYamlFiles) {
+                                    def hostYaml = readYaml(file: hostYamlFile.path)
+                                    def hostComponents = hostYaml.host_components
 
-                                for (def component in hostComponents) {
-                                    if (component.name == artifact.name) {
-                                        echo "Artifact '${artifact.name}' found in Host YAML: ${hostYamlFile.name}"
+                                    for (def component in hostComponents) {
+                                        if (component.name == artifact.name) {
+                                            echo "Artifact '${artifact.name}' found in Host YAML: ${hostYamlFile.name}"
+                                        }
                                     }
                                 }
-                            }
-                        
                             
+                                
+                            }
                         }
-                    }
 
-                    parallel stageMap
+                        parallel stageMap
+                    }
+                
                     
                 }
             }
