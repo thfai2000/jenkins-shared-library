@@ -85,7 +85,7 @@ pipeline {
                         echo artifact.name
                         
                         stageMap["Artifact: ${artifact.name}"] = {
-                            stage("Artifact: ${artifact.name}") {
+                            stage("xrtifact: ${artifact.name}") {
                                 steps {
                                     echo "tesdt"
                                     // for (def hostYamlFile in hostYamlFiles) {
