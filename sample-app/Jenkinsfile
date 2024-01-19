@@ -53,19 +53,13 @@ pipeline {
                     env.which_env = params.which_env
                     env.selected_version_snapshot = params.selected_version_snapshot
                 }
-            }
-        }
-        
-        stage('Loop through Artifacts') {
-            steps {
                 echo "which_env=${env.which_env}"
                 echo "selected_version_snapshot=${env.selected_version_snapshot}"
                 script {
-                    def artifacts
                     def response = httpRequest(url: getSnapshotUrl(env.selected_version_snapshot))
                     
                     if (response.status == 200) {
-                        artifacts = readYaml(text: response.content)
+                        env.artifacts = readYaml(text: response.content)
                     } else {
                         error "Failed to retrieve YAML file. HTTP status: ${response.status}"
                     }
@@ -74,35 +68,40 @@ pipeline {
                         // def targetFolder = sh(script: 'dirname $0', returnStdout: true).trim() + "/${env.which_env}"
                         def targetFolder = env.which_env
                         sh(script: "ls ${targetFolder}")
-                        parallel {
-                            for (def artifact in artifacts) {
-                                stage("Artifact: ${artifact.name}") {
-                                    
-                                    def hostYamlFiles = findFiles(glob: "${targetFolder}/hosts/*.yaml")
+                        env.hostYamlFiles = findFiles(glob: "${targetFolder}/hosts/*.yaml")
 
-                                    for (def hostYamlFile in hostYamlFiles) {
-                                        def hostYaml = readYaml(file: hostYamlFile.path)
-                                        def hostComponents = hostYaml.host_components
+                    }
+                }
+            }
+        }
+        
+        stage('Loop through Artifacts') {
+            steps {
+                script {
+                    parallel {
+                        for (def artifact in env.artifacts) {
+                            stage("Artifact: ${artifact.name}") {
+                            
+                                for (def hostYamlFile in hostYamlFiles) {
+                                    def hostYaml = readYaml(file: hostYamlFile.path)
+                                    def hostComponents = hostYaml.host_components
 
-                                        for (def component in hostComponents) {
-                                            if (component.name == artifact.name) {
-                                                echo "Artifact '${artifact.name}' found in Host YAML: ${hostYamlFile.name}"
-                                            }
+                                    for (def component in hostComponents) {
+                                        if (component.name == artifact.name) {
+                                            echo "Artifact '${artifact.name}' found in Host YAML: ${hostYamlFile.name}"
                                         }
                                     }
                                 }
                             }
                         }
-
                     }
                 }
-                
-            
             }
         }
         
     }
 }
+
 
 
 // def getFolderNames() {
