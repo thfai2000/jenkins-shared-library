@@ -101,7 +101,7 @@ pipeline {
                         }
                     }
 
-                    parallel stageMap
+                    // parallel stageMap
                     
                 }
             }
