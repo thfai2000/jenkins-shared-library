@@ -100,23 +100,26 @@ def processComponent(currentArtifact, hostYamlFiles) {
     return {
                                 
         echo currentArtifact.name
-        def stageMap = [:]  // Map to store parallel stages
-
-        for (def hostYamlFile in hostYamlFiles) {
-            def hostYaml = readYaml(file: hostYamlFile.path)
-            def hostComponentsYaml = hostYaml.host_components
+        script {
             
+            def stageMap = [:]  // Map to store parallel stages
 
-            for (def componentYaml in hostComponentsYaml) {
-                if (componentYaml.name == currentArtifact.name) {
-                    echo "Artifact '${currentArtifact.name}' found in Host YAML: ${hostYamlFile.name}"
+            for (def hostYamlFile in hostYamlFiles) {
+                def hostYaml = readYaml(file: hostYamlFile.path)
+                def hostComponentsYaml = hostYaml.host_components
+                
 
-                    stageMap["Machine: ${hostYaml.name}"] = processComponentOnMachine(currentArtifact, hostYaml, componentYaml)
-                    
+                for (def componentYaml in hostComponentsYaml) {
+                    if (componentYaml.name == currentArtifact.name) {
+                        echo "Artifact '${currentArtifact.name}' found in Host YAML: ${hostYamlFile.name}"
+
+                        stageMap["Machine: ${hostYaml.name}"] = processComponentOnMachine(currentArtifact, hostYaml, componentYaml)
+                        
+                    }
                 }
             }
+            parallel stageMap
         }
-        parallel stageMap
 
     }
 }
