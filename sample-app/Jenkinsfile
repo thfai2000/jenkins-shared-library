@@ -43,8 +43,7 @@ pipeline {
                     snapshotVersions = files
                 }
                 echo "snapshotVersions: $snapshotVersions"
-                scripts {
-
+                script {
                     def params = input(message: 'Provide the build information',
                         ok: "Continue",
                         parameters: [
