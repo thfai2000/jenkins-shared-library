@@ -102,7 +102,7 @@ def processComponent(currentArtifact, hostYamlFiles) {
         echo currentArtifact.name
         script {
 
-            def stageMap = [:]  // Map to store parallel stages
+            // def stageMap = [:]  // Map to store parallel stages
 
             for (def hostYamlFile in hostYamlFiles) {
                 def hostYaml = readYaml(file: hostYamlFile.path)
@@ -113,22 +113,29 @@ def processComponent(currentArtifact, hostYamlFiles) {
                     if (componentYaml.name == currentArtifact.name) {
                         echo "Artifact '${currentArtifact.name}' found in Host YAML: ${hostYamlFile.name}"
 
-                        stageMap["Machine: ${hostYaml.hostname}"] = processComponentOnMachine(currentArtifact, hostYaml, componentYaml)
+                        stage{
+                            echo "download"
+                        }
+
+                        stage {
+                            echo "install"
+                        }
+                        // stageMap["Machine: ${hostYaml.hostname}"] = processComponentOnMachine(currentArtifact, hostYaml, componentYaml)
                         
                     }
                 }
             }
-            parallel stageMap
+            // parallel stageMap
         }
 
     }
 }
 
-def processComponentOnMachine(currentArtifact, hostYaml, componentYaml ) {
-    return {
-        echo "install machine ${hostYaml.hostname}"
-    }
-}
+// def processComponentOnMachine(currentArtifact, hostYaml, componentYaml ) {
+//     return {
+//         echo "install machine ${hostYaml.hostname}"
+//     }
+// }
 
 // def getFolderNames() {
     
