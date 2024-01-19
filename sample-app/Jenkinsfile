@@ -114,11 +114,17 @@ def processComponent(currentArtifact, hostYamlFiles) {
                         echo "Artifact '${currentArtifact.name}' found in Host YAML: ${hostYamlFile.name}"
 
                         stage{
-                            echo "download"
+                            steps {
+
+                                echo "download"
+                            }
                         }
 
-                        stage {
-                            echo "install"
+                        stage{
+                            steps {
+
+                                echo "install"
+                            }
                         }
                         // stageMap["Machine: ${hostYaml.hostname}"] = processComponentOnMachine(currentArtifact, hostYaml, componentYaml)
                         
