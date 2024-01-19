@@ -83,7 +83,7 @@ pipeline {
                         stageMap["Artifact: ${artifact.name}"] = {
                             stage("Artifact: ${artifact.name}") {
                                 steps {
-                                    for (def hostYamlFile in hostYamlFiles) {
+                                    for (def hostYamlFile in env.hostYamlFiles) {
                                         def hostYaml = readYaml(file: hostYamlFile.path)
                                         def hostComponents = hostYaml.host_components
 
