@@ -82,23 +82,21 @@ pipeline {
                 
                     def stageMap = [:]  // Map to store parallel stages
                     for (def artifact in artifacts) {
-                        echo artifact.name
                         
                         stageMap["Artifact: ${artifact.name}"] = {
                             
-                            steps {
-                                echo "tesdt"
-                                // for (def hostYamlFile in hostYamlFiles) {
-                                //     def hostYaml = readYaml(file: hostYamlFile.path)
-                                //     def hostComponents = hostYaml.host_components
+                            echo artifact.name
+                            for (def hostYamlFile in hostYamlFiles) {
+                                def hostYaml = readYaml(file: hostYamlFile.path)
+                                def hostComponents = hostYaml.host_components
 
-                                //     for (def component in hostComponents) {
-                                //         if (component.name == artifact.name) {
-                                //             echo "Artifact '${artifact.name}' found in Host YAML: ${hostYamlFile.name}"
-                                //         }
-                                //     }
-                                // }
+                                for (def component in hostComponents) {
+                                    if (component.name == artifact.name) {
+                                        echo "Artifact '${artifact.name}' found in Host YAML: ${hostYamlFile.name}"
+                                    }
+                                }
                             }
+                        
                             
                         }
                     }
