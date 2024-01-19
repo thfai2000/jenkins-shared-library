@@ -73,7 +73,7 @@ pipeline {
                         stage("Artifact: ${artifact.name}") {
                             def targetFolder = sh(script: 'dirname $0', returnStdout: true).trim() + "/${env.which_env}"
 
-                             sh(script: 'dirname $0')
+                             sh(script: "ls ${targetFolder}")
 
                             def hostYamlFiles = new File(targetFolder + "/hosts").listFiles({ file -> file.isFile() && file.name.endsWith('.yaml') })
 
