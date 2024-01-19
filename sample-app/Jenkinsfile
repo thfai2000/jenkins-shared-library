@@ -30,7 +30,7 @@ pipeline {
                 echo "type: ${folderNames.getClass()}"
                 echo "folderNames: ${folderNames}"
                 script {
-                    
+                    displayName('get snapshots')
                     def treeApiUrl = "https://api.github.com/repos/$VERSION_SNAPSHOT_REPO_NAME/contents/$VERSION_SNAPSHOT_FOLDER_NAME?ref=$GIT_BRANCH"
 
                     def response = httpRequest(url: treeApiUrl, httpMode: 'GET')
@@ -62,8 +62,14 @@ pipeline {
                 echo "which_env=${env.which_env}"
                 echo "selected_version_snapshot=${env.selected_version_snapshot}"
                 script {
-                    def artifacts = readYaml(url: getSnapshotUrl(env.selected_version_snapshot))
-
+                    def artifacts
+                    def response = httpRequest(url: getSnapshotUrl(env.selected_version_snapshot))
+                    
+                    if (response.status == 200) {
+                        artifacts = readYaml(text: response.content)
+                    } else {
+                        error "Failed to retrieve YAML file. HTTP status: ${response.status}"
+                    }
                     for (def artifact in artifacts) {
                         stage("Artifact: ${artifact.name}") {
                             def targetFolder = sh(script: 'dirname $0', returnStdout: true).trim() + "/${env.which_env}"
