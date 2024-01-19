@@ -1,5 +1,3 @@
-def params
-
 pipeline {
     agent any
 
@@ -45,7 +43,7 @@ pipeline {
                     snapshotVersions = files
                 }
                 echo "snapshotVersions: $snapshotVersions"
-                params = input(message: 'Provide the build information',
+                input(message: 'Provide the build information',
                     ok: "Continue",
                     parameters: [
                         choice(name: 'which_env', choices: Arrays.asList(folderNames), description: 'Select the environment'),
