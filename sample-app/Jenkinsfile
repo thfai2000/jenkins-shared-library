@@ -77,6 +77,8 @@ pipeline {
         
         stage('Loop through Artifacts') {
             steps {
+                echo "artifacts=${env.artifacts}"
+                echo "hostYamlFiles=${env.hostYamlFiles}"
                 script {
                     def stageMap = [:]  // Map to store parallel stages
                     for (def artifact in env.artifacts) {
