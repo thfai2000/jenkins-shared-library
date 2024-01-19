@@ -30,7 +30,6 @@ pipeline {
                 echo "type: ${folderNames.getClass()}"
                 echo "folderNames: ${folderNames}"
                 script {
-                    displayName('get snapshots')
                     def treeApiUrl = "https://api.github.com/repos/$VERSION_SNAPSHOT_REPO_NAME/contents/$VERSION_SNAPSHOT_FOLDER_NAME?ref=$GIT_BRANCH"
 
                     def response = httpRequest(url: treeApiUrl, httpMode: 'GET')
