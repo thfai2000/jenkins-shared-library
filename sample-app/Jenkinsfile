@@ -55,11 +55,19 @@ pipeline {
                 }
                 echo "which_env=${env.which_env}"
                 echo "selected_version_snapshot=${env.selected_version_snapshot}"
+                
+            }
+        }
+        
+        stage('Loop through Artifacts') {
+            steps {
                 script {
+                    def hostYamlFiles
+                    def artifacts
                     def response = httpRequest(url: getSnapshotUrl(env.selected_version_snapshot))
                     
                     if (response.status == 200) {
-                        env.artifacts = readYaml(text: response.content)
+                        artifacts = readYaml(text: response.content)
                     } else {
                         error "Failed to retrieve YAML file. HTTP status: ${response.status}"
                     }
@@ -68,40 +76,34 @@ pipeline {
                         // def targetFolder = sh(script: 'dirname $0', returnStdout: true).trim() + "/${env.which_env}"
                         def targetFolder = env.which_env
                         sh(script: "ls ${targetFolder}")
-                        env.hostYamlFiles = findFiles(glob: "${targetFolder}/hosts/*.yaml")
+                        hostYamlFiles = findFiles(glob: "${targetFolder}/hosts/*.yaml")
 
                     }
-                }
-            }
-        }
-        
-        stage('Loop through Artifacts') {
-            steps {
-                echo "artifacts=${env.artifacts}"
-                echo "hostYamlFiles=${env.hostYamlFiles}"
-                script {
+                
                     def stageMap = [:]  // Map to store parallel stages
-                    for (def artifact in env.artifacts) {
-                        // stageMap["Artifact: ${artifact.name}"] = {
-                        //     stage("Artifact: ${artifact.name}") {
-                        //         steps {
-                        //             echo "tesdt"
-                        //             // for (def hostYamlFile in env.hostYamlFiles) {
-                        //             //     def hostYaml = readYaml(file: hostYamlFile.path)
-                        //             //     def hostComponents = hostYaml.host_components
+                    for (def artifact in artifacts) {
+                        echo artifact.name
+                        
+                        stageMap["Artifact: ${artifact.name}"] = {
+                            stage("Artifact: ${artifact.name}") {
+                                steps {
+                                    echo "tesdt"
+                                    // for (def hostYamlFile in hostYamlFiles) {
+                                    //     def hostYaml = readYaml(file: hostYamlFile.path)
+                                    //     def hostComponents = hostYaml.host_components
 
-                        //             //     for (def component in hostComponents) {
-                        //             //         if (component.name == artifact.name) {
-                        //             //             echo "Artifact '${artifact.name}' found in Host YAML: ${hostYamlFile.name}"
-                        //             //         }
-                        //             //     }
-                        //             // }
-                        //         }
-                        //     }
-                        // }
+                                    //     for (def component in hostComponents) {
+                                    //         if (component.name == artifact.name) {
+                                    //             echo "Artifact '${artifact.name}' found in Host YAML: ${hostYamlFile.name}"
+                                    //         }
+                                    //     }
+                                    // }
+                                }
+                            }
+                        }
                     }
 
-                    // parallel stageMap
+                    parallel stageMap
                     
                 }
             }
