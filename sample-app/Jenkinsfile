@@ -75,7 +75,7 @@ pipeline {
 
                              sh(script: 'dirname $0')
 
-                            def hostYamlFiles = new File(targetFolder).listFiles({ file -> file.isFile() && file.name.endsWith('.yaml') })
+                            def hostYamlFiles = new File(targetFolder + "/hosts").listFiles({ file -> file.isFile() && file.name.endsWith('.yaml') })
 
                             for (def hostYamlFile in hostYamlFiles) {
                                 def hostYaml = readYaml(file: hostYamlFile.path)
