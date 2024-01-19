@@ -55,6 +55,8 @@ pipeline {
         
         stage('Loop through Artifacts') {
             steps {
+                echo "which_env=${params.which_env}"
+                echo "selected_version_snapshot=${params.selected_version_snapshot}"
                 script {
                     def artifacts = readYaml(url: getSnapshotUrl(params.selected_version_snapshot))
 
