@@ -69,27 +69,34 @@ pipeline {
                     } else {
                         error "Failed to retrieve YAML file. HTTP status: ${response.status}"
                     }
-                    for (def artifact in artifacts) {
-                        stage("Artifact: ${artifact.name}") {
-                            def targetFolder = sh(script: 'dirname $0', returnStdout: true).trim() + "/${env.which_env}"
+                    dir('env-config') {
 
-                             sh(script: "ls ${targetFolder}")
+                        // def targetFolder = sh(script: 'dirname $0', returnStdout: true).trim() + "/${env.which_env}"
+                        def targetFolder = env.which_env
 
-                            def hostYamlFiles = new File(targetFolder + "/hosts").listFiles({ file -> file.isFile() && file.name.endsWith('.yaml') })
+                        for (def artifact in artifacts) {
+                            stage("Artifact: ${artifact.name}") {
+                                
+                                sh(script: "ls ${targetFolder}")
 
-                            for (def hostYamlFile in hostYamlFiles) {
-                                def hostYaml = readYaml(file: hostYamlFile.path)
-                                def hostComponents = hostYaml.host_components
+                                def hostYamlFiles = new File(targetFolder + "/hosts").listFiles({ file -> file.isFile() && file.name.endsWith('.yaml') })
 
-                                for (def component in hostComponents) {
-                                    if (component.name == artifact.name) {
-                                        echo "Artifact '${artifact.name}' found in Host YAML: ${hostYamlFile.name}"
+                                for (def hostYamlFile in hostYamlFiles) {
+                                    def hostYaml = readYaml(file: hostYamlFile.path)
+                                    def hostComponents = hostYaml.host_components
+
+                                    for (def component in hostComponents) {
+                                        if (component.name == artifact.name) {
+                                            echo "Artifact '${artifact.name}' found in Host YAML: ${hostYamlFile.name}"
+                                        }
                                     }
                                 }
                             }
                         }
+
                     }
                 }
+                
             
             }
         }
