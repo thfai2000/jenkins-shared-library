@@ -72,6 +72,9 @@ pipeline {
                     for (def artifact in artifacts) {
                         stage("Artifact: ${artifact.name}") {
                             def targetFolder = sh(script: 'dirname $0', returnStdout: true).trim() + "/${env.which_env}"
+
+                             sh(script: 'dirname $0')
+
                             def hostYamlFiles = findFiles(glob: "${targetFolder}/hosts/*.yaml")
 
                             for (def hostYamlFile in hostYamlFiles) {
