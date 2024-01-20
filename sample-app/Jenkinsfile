@@ -47,7 +47,7 @@ def selectSnapshotAndEnv(closure){
     }
     snapshotVersions = files
 
-    def params = input(message: 'Provide the build information',
+    def params = input(message: 'Provide the deployment information',
         ok: "Continue",
         parameters: [
             choice(name: 'which_env', choices: Arrays.asList(envFolderNames), description: 'Select the environment'),
@@ -139,7 +139,7 @@ def installComponent( componentName, closure) {
     prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml ->
 
         echo "Install Component '${targetComponentName}'(version=${componentSnapshot.version}) on Host '${hostYaml.hostname}'"
-        def preparePropYaml = "groups"
+        def groups_dir_path = "groups"
         def mergedYaml = preparePropYaml(hostYaml, groups_dir_path, targetComponentName)
         // // Write the merged YAML to a new file
         
