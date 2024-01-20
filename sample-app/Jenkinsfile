@@ -12,7 +12,7 @@ def checkoutEnvConfig() {
                 submoduleCfg: [],
                 userRemoteConfigs: [[url: ENV_CONFIG_GIT_SOURCE]]])
     script {
-        env.envFolderNames = sh(script: "ls -d */ | xargs -n 1 basename", returnStdout: true).trim().split("\n")
+        env.envFolderNamesString = sh(script: "ls -d */ | xargs -n 1 basename", returnStdout: true).trim()
     }
 }
 
@@ -22,9 +22,9 @@ def selectSnapshotAndEnv(closure){
     dir('env-config') {
         checkoutEnvConfig()
     }
-
-    // echo "type: ${env.envFolderNames.getClass()}"
-    echo "envFolderNames: ${env.envFolderNames}"
+    def envFolderNames = env.envFolderNamesString.split("\n")
+    echo "type: ${envFolderNames.getClass()}"
+    echo "envFolderNames: ${envFolderNames}"
     
     def treeApiUrl = "https://api.github.com/repos/$VERSION_SNAPSHOT_REPO_NAME/contents/$VERSION_SNAPSHOT_FOLDER_NAME?ref=$GIT_BRANCH"
 
@@ -40,7 +40,7 @@ def selectSnapshotAndEnv(closure){
     def params = input(message: 'Provide the build information',
         ok: "Continue",
         parameters: [
-            choice(name: 'which_env', choices: Arrays.asList(env.envFolderNames), description: 'Select the environment'),
+            choice(name: 'which_env', choices: Arrays.asList(envFolderNames), description: 'Select the environment'),
             choice(name: 'selected_version_snapshot', choices: snapshotVersions, description: 'Select the snapshot version')
         ]
     )
