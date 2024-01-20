@@ -9,30 +9,56 @@ Map merge(Map... maps) {
     result
 }
 
-def replaceTokens(Map map, Map tokens) {
-    map.each { key, value ->
-        if (value instanceof Map) {
-            map[key] = replaceTokens(value, tokens)
-        } else if (value instanceof String) {
-            def matcher = value =~ /\$\{p:(\w+)\}/
-            while (matcher.find()) {
-                def tokenName = matcher.group(1)
-                if (tokens.containsKey(tokenName)) {
-                    def tokenValue = tokens[tokenName]
-                    if (tokenValue instanceof String) {
-                        def nestedMatcher = tokenValue =~ /\$\{p:(\w+)\}/
-                        if (nestedMatcher.find()) {
-                            tokenValue = replaceTokens([key: tokenValue], tokens)[key]
-                        }
-                    }
-                    value = value.replace(matcher.group(0), tokenValue)
-                }
-            }
-            map[key] = value
+def findTokenValue(String tokenName, Map tokens) {
+    def parts = tokenName.split("\\.")
+    def value = tokens
+    parts.each { part ->
+        value = value[part]
+        if (value == null) {
+            return null
         }
     }
-    return map
+    value
 }
+
+def traverseAndReplaceValues(Map map, Map tokens) {
+    map.each { key, value ->
+        if (value instanceof String) {
+            def matcher = value =~ /\$\{p:([\w\.]+)\}/
+            if (matcher) {
+                matcher.each { match ->
+                    def tokenName = match[1]
+                    def tokenValue = findTokenValue(tokenName, tokens)
+                    if (tokenValue instanceof String) {
+                        value = value.replace("\${p:${tokenName}}", tokenValue)
+                    }
+                }
+            }
+        } else if (value instanceof Map) {
+            value = traverseAndReplaceValues(value, tokens)
+        } else if (value instanceof List) {
+            value.eachWithIndex { item, index ->
+                if (item instanceof Map) {
+                    value[index] = traverseAndReplaceValues(item, tokens)
+                } else if (item instanceof String) {
+                    def matcher = item =~ /\$\{p:([\w\.]+)\}/
+                    if (matcher) {
+                        matcher.each { match ->
+                            def tokenName = match[1]
+                            def tokenValue = findTokenValue(tokenName, tokens)
+                            if (tokenValue instanceof String) {
+                                value[index] = item.replace("\${p:${tokenName}}", tokenValue)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        map[key] = value
+    }
+    map
+}
+
 
 def getSnapshotUrl(version) {
     def snapshotUrl = "https://raw.githubusercontent.com/$VERSION_SNAPSHOT_REPO_NAME/$GIT_BRANCH/$VERSION_SNAPSHOT_FOLDER_NAME/$version"
@@ -121,8 +147,8 @@ def preparePropYaml(hostYaml, groups_dir_path, targetComponentName) {
     }
 
 
-    // Token replace in the YAML
-    mergedYaml = replaceTokens(mergedYaml, mergedYaml)
+    // Token replace in the Value YAML File
+    mergedYaml = traverseAndReplaceValues(mergedYaml, mergedYaml)
 
     return mergedYaml
 }
