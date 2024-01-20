@@ -264,11 +264,11 @@ def installComponent( componentName, closure) {
 
             if(closure){
                 def commandExecutor = { cmd, outputToFilename ->
-                    
-                    def sshResultExecutor = sshScript remote: "${hostYaml.host}", script: exportedValues  + cmd
-                    
+
+                    def sshResultExecutor = "ssh -i $SSH_KEY "${hostYaml.host}" '$exportedValues $cmd'"
+
                     // Check the exit status of the SSH command
-                    if (sshResultExecutor == 0) {
+                    if (sshResultExecutor.returnStatus == 0) {
                         echo "SSH script executed successfully."
                     } else {
                         error "Error executing SSH script. Job will be stopped."
