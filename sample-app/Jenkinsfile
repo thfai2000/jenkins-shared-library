@@ -4,24 +4,27 @@ def getSnapshotUrl(version) {
     return snapshotUrl
 }
 
-def checkoutEnvConfig(closure){
-    echo "GIT_BRANCH: ${env.BRANCH_NAME}"
-    echo "VERSION_SNAPSHOT_REPO_NAME: $VERSION_SNAPSHOT_REPO_NAME"
-    dir('env-config') {
-        checkout([$class: 'GitSCM',
+def checkoutEnvConfig() {
+    checkout([$class: 'GitSCM',
                 branches: [[name: env.BRANCH_NAME]],
                 doGenerateSubmoduleConfigurations: false,
                 extensions: [],
                 submoduleCfg: [],
                 userRemoteConfigs: [[url: ENV_CONFIG_GIT_SOURCE]]])
-        script {
-            folderNames = sh(script: "ls -d */ | xargs -n 1 basename", returnStdout: true).trim().split("\n")
-        }
+    script {
+        env.envFolderNames = sh(script: "ls -d */ | xargs -n 1 basename", returnStdout: true).trim().split("\n")
+    }
+}
 
+def selectSnapshotAndEnv(closure){
+    echo "GIT_BRANCH: ${env.BRANCH_NAME}"
+    echo "VERSION_SNAPSHOT_REPO_NAME: $VERSION_SNAPSHOT_REPO_NAME"
+    dir('env-config') {
+        checkoutEnvConfig()
     }
 
-    echo "type: ${folderNames.getClass()}"
-    echo "folderNames: ${folderNames}"
+    echo "type: ${envFolderNames.getClass()}"
+    echo "envFolderNames: ${envFolderNames}"
     
     def treeApiUrl = "https://api.github.com/repos/$VERSION_SNAPSHOT_REPO_NAME/contents/$VERSION_SNAPSHOT_FOLDER_NAME?ref=$GIT_BRANCH"
 
@@ -37,7 +40,7 @@ def checkoutEnvConfig(closure){
     def params = input(message: 'Provide the build information',
         ok: "Continue",
         parameters: [
-            choice(name: 'which_env', choices: Arrays.asList(folderNames), description: 'Select the environment'),
+            choice(name: 'which_env', choices: Arrays.asList(envFolderNames), description: 'Select the environment'),
             choice(name: 'selected_version_snapshot', choices: snapshotVersions, description: 'Select the snapshot version')
         ]
     )
@@ -61,6 +64,7 @@ def checkoutEnvConfig(closure){
 
 def prepareComponent(targetComponentName, closure) {
     dir('env-config') {
+        checkoutEnvConfig()
         def componentSnapshots
         componentSnapshots = readYaml(text: env.snapshotContent)
         // def targetFolder = sh(script: 'dirname $0', returnStdout: true).trim() + "/${env.which_env}"
@@ -120,9 +124,9 @@ pipeline {
 
     stages {
 
-        stage('Checkout Snapshot and Env Config') {
+        stage('Select Snapshot and Environment') {
             steps {
-                checkoutEnvConfig {
+                selectSnapshotAndEnv {
                 }
             }
         }
