@@ -254,7 +254,7 @@ def installComponent( componentName, closure) {
                 bash $DOWNLOAD_DEPLOY_DIR/install.sh
             '''
             sshResult = sh script: sshCommand, returnStdout: true, returnStatus: true
-            def exitCode = sshResult.returnStatus
+            exitCode = sshResult.returnStatus
              // Check the exit status of the SSH command
             if (exitCode == 0) {
                 echo "SSH script executed successfully."
