@@ -140,7 +140,7 @@ def prepareComponent(targetComponentName, closure) {
 
 def exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, props){
 
-    return "export WHICH_ENV=${props.which_env}
+    return '''export WHICH_ENV=${props.which_env}
             export WHICH_SITE=${props.which_site}
             export APPLICATION_NAME=${props.application_name}
             export HOSTNAME=${hostYaml.hostname}
@@ -162,7 +162,7 @@ def exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, props){
             export APP_LOG_DIR=${props.app_log_dir}
             # must have a new line here
 
-            "
+            '''
 }
 
 def downloadComponent( componentName, closure) {
