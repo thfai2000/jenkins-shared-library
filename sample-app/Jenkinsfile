@@ -41,8 +41,9 @@ def checkoutEnvConfig(closure){
             choice(name: 'selected_version_snapshot', choices: snapshotVersions, description: 'Select the snapshot version')
         ]
     )
-
-    closure()
+    if(closure){
+        closure()
+    }
 
     env.which_env = params.which_env
     env.selected_version_snapshot = params.selected_version_snapshot
@@ -119,80 +120,81 @@ pipeline {
 
         stage('Checkout Snapshot and Env Config') {
             steps {
-                checkoutEnvConfig()
-            }
-        }
-        stage('Download Deploy Scripts') {
-            steps {
-                downloadComponent("deploy") {
-                    echo "completed download deploy scripts"
+                checkoutEnvConfig {
                 }
             }
         }
+        // stage('Download Deploy Scripts') {
+        //     steps {
+        //         downloadComponent("deploy") {
+        //             echo "completed download deploy scripts"
+        //         }
+        //     }
+        // }
         
-        stage('Deploy Components') {
-            parallel {
-                stage ("web1") {
-                    stages {
-                        stage('download') {
-                            steps {
-                                downloadComponent("web1") {
-                                    echo "completed download web1"
-                                }
-                            }
-                        }
-                        stage('install') {
-                            steps {
-                                installComponent("web1") {
-                                    echo "completed install web1"
-                                }
-                            }
-                        }
-                    }
-                }
-                stage ("web2") {
-                    stages {
-                        stage('download') {
-                            steps {
-                                downloadComponent("web2") {
-                                    echo "completed download web2"
-                                }
+        // stage('Deploy Components') {
+        //     parallel {
+        //         stage ("web1") {
+        //             stages {
+        //                 stage('download') {
+        //                     steps {
+        //                         downloadComponent("web1") {
+        //                             echo "completed download web1"
+        //                         }
+        //                     }
+        //                 }
+        //                 stage('install') {
+        //                     steps {
+        //                         installComponent("web1") {
+        //                             echo "completed install web1"
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //         stage ("web2") {
+        //             stages {
+        //                 stage('download') {
+        //                     steps {
+        //                         downloadComponent("web2") {
+        //                             echo "completed download web2"
+        //                         }
                                 
-                            }
-                        }
-                        stage('install') {
-                            steps {
-                                installComponent("web2") {
-                                    echo "completed install web2"
-                                }
+        //                     }
+        //                 }
+        //                 stage('install') {
+        //                     steps {
+        //                         installComponent("web2") {
+        //                             echo "completed install web2"
+        //                         }
                             
-                            }
-                        }
-                    }
-                }
-                stage ("web3") {
-                    stages {
-                        stage('download') {
-                            steps {
-                                downloadComponent("web3") {
-                                    echo "completed download web3"
-                                }
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //         stage ("web3") {
+        //             stages {
+        //                 stage('download') {
+        //                     steps {
+        //                         downloadComponent("web3") {
+        //                             echo "completed download web3"
+        //                         }
                             
-                            }
-                        }
-                        stage('install') {
-                            steps {
-                                installComponent("web3") {
-                                    echo "completed install web3"
-                                }
+        //                     }
+        //                 }
+        //                 stage('install') {
+        //                     steps {
+        //                         installComponent("web3") {
+        //                             echo "completed install web3"
+        //                         }
                             
-                            }
-                        }
-                    }
-                }
-            }
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
             
-        }
+        // }
     }
 }
 
