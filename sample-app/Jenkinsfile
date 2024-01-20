@@ -97,7 +97,7 @@ def checkoutEnvConfig(){
     )
     env.which_env = params.which_env
     env.selected_version_snapshot = params.selected_version_snapshot
-    def response = httpRequest(url: getSnapshotUrl(env.selected_version_snapshot))
+    response = httpRequest(url: getSnapshotUrl(env.selected_version_snapshot))
 
     if (response.status == 200) {
         env.snapshotContent = response.content
