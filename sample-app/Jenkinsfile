@@ -1,3 +1,6 @@
+import org.yaml.snakeyaml.DumperOptions
+import org.yaml.snakeyaml.Yaml
+
 Map merge(Map... maps) {
     Map result = [:]
     maps.each { map ->
@@ -95,8 +98,14 @@ def preparePropYaml(hostYaml, groups_dir_path, targetComponentName) {
         }
     }
 
+    // Create YAML dumper options
+    DumperOptions options = new DumperOptions()
+    options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK) // Set flow style to block for readability
+
+    // Create YAML instance and convert mergedYaml to YAML string
+    Yaml yaml = new Yaml(options)
+    def template = yaml.dump(mergedYaml)
     // Token replace in the YAML
-    def template = mergedYaml.toString()
     def replacements = mergedYaml
 
     replacements.each { key, value ->
@@ -104,7 +113,6 @@ def preparePropYaml(hostYaml, groups_dir_path, targetComponentName) {
             template = template.replace("\${p:$key}", value)
         }
     }
-
     mergedYaml = readYaml text: template
     
     return mergedYaml
