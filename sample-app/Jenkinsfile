@@ -19,7 +19,9 @@ pipeline {
         stage('Download Deploy Scripts') {
             steps {
                 script {
-                    downloadDeployScripts()
+                    downloadComponent("deploy") {
+                        echo "completed download deploy scripts"
+                    }
                 }
             }
         }
@@ -27,23 +29,68 @@ pipeline {
         stage('Deploy Components') {
             parallel {
                 stage ("web1") {
-                    steps{
-                        script {
-                            processComponent("web1")
+                    stages {
+                        stage('download') {
+                            steps {
+                                script {
+                                    downloadComponent("web1") {
+                                        echo "completed download web1"
+                                    }
+                                }
+                            }
+                        }
+                        stage('install') {
+                            steps {
+                                script {
+                                    installComponent("web1") {
+                                        echo "completed install web1"
+                                    }
+                                }
+                            }
                         }
                     }
                 }
                 stage ("web2") {
-                    steps{
-                        script {
-                            processComponent("web2")
+                    stages {
+                        stage('download') {
+                            steps {
+                                script {
+                                    downloadComponent("web2") {
+                                        echo "completed download web2"
+                                    }
+                                }
+                            }
+                        }
+                        stage('install') {
+                            steps {
+                                script {
+                                    installComponent("web2") {
+                                        echo "completed install web2"
+                                    }
+                                }
+                            }
                         }
                     }
                 }
                 stage ("web3") {
-                    steps{
-                        script {
-                            processComponent("web3")
+                    stages {
+                        stage('download') {
+                            steps {
+                                script {
+                                    downloadComponent("web3") {
+                                        echo "completed download web3"
+                                    }
+                                }
+                            }
+                        }
+                        stage('install') {
+                            steps {
+                                script {
+                                    installComponent("web3") {
+                                        echo "completed install web3"
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -109,11 +156,24 @@ def checkoutEnvConfig(){
     echo "selected_version_snapshot=${env.selected_version_snapshot}"
 }
 
-def downloadDeployScripts() {
-    echo "Done"
+def downloadComponent = { targetComponentName, closure ->
+    prepareComponent(targetComponentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml ->
+
+        echo "Download Deploy Scripts here"
+        closure.call()
+    }
 }
 
-def processComponent(targetComponentName){
+def installComponent = { targetComponentName, closure ->
+    prepareComponent(targetComponentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml ->
+
+        echo "Install Component here"
+        closure.call()
+    }
+}
+
+
+def prepareComponent = { targetComponentName, closure ->
     dir('env-config') {
         def componentSnapshots
         componentSnapshots = readYaml(text: env.snapshotContent)
@@ -123,7 +183,6 @@ def processComponent(targetComponentName){
         sh(script: "ls ${targetFolder}")
         hostYamlFiles = findFiles(glob: "${targetFolder}/hosts/*.yaml")
 
-        def stageMap = [:]  // Map to store parallel stages
         for (def componentSnapshot in componentSnapshots) {
             
             if(targetComponentName == componentSnapshot.name){
@@ -135,25 +194,25 @@ def processComponent(targetComponentName){
                     for (def componentYaml in hostComponentsYaml) {
                         if (componentYaml.name == targetComponentName) {
                             echo "Component '${targetComponentName}' found in Host YAML: ${hostYamlFile.name}"
-                            stageMap["Host: ${hostYamlFile.name}"] = processComponentOnMachine(componentSnapshot, targetComponentName, hostYaml, componentYaml ) 
+                            closure.call(targetComponentName, componentSnapshot, hostYaml, componentYaml)
                         }
                     }
                 }
             }
         }
-
-        parallel stageMap
     }
 }
 
-def processComponentOnMachine(componentSnapshot , componentName, hostYaml, componentYaml) {
 
-    return {
-        echo "Host: ${hostYaml.hostname}"                        
-        echo "processComponentOnMachine: ${componentName}"
-        echo "download version ${componentSnapshot.version}"
-    }
-}
+
+// def processComponentOnMachine(componentName, componentSnapshot, hostYaml, componentYaml) {
+
+//     return {
+//         echo "Host: ${hostYaml.hostname}"                        
+//         echo "processComponentOnMachine: ${componentName}"
+//         echo "download version ${componentSnapshot.version}"
+//     }
+// }
 
 
 
