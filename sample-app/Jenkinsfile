@@ -156,18 +156,17 @@ def checkoutEnvConfig(){
     echo "selected_version_snapshot=${env.selected_version_snapshot}"
 }
 
-def downloadComponent = { targetComponentName, closure ->
-    prepareComponent(targetComponentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml ->
-
-        echo "Download Deploy Scripts here"
+def downloadComponent = { componentName, closure ->
+    prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml ->
+        echo "Download Component '${targetComponentName}'(version=${componentSnapshot.version}) on Host '${hostYamlFile.hostname}'"
         closure.call()
     }
 }
 
-def installComponent = { targetComponentName, closure ->
-    prepareComponent(targetComponentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml ->
+def installComponent = { componentName, closure ->
+    prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml ->
 
-        echo "Install Component here"
+        echo "Install Component '${targetComponentName}'(version=${componentSnapshot.version}) on Host '${hostYamlFile.hostname}'"
         closure.call()
     }
 }
@@ -193,7 +192,6 @@ def prepareComponent = { targetComponentName, closure ->
                     
                     for (def componentYaml in hostComponentsYaml) {
                         if (componentYaml.name == targetComponentName) {
-                            echo "Component '${targetComponentName}' found in Host YAML: ${hostYamlFile.name}"
                             closure.call(targetComponentName, componentSnapshot, hostYaml, componentYaml)
                         }
                     }
