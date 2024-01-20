@@ -94,6 +94,16 @@ def preparePropYaml(hostYaml, groups_dir_path, targetComponentName) {
             mergedYaml = merge(mergedYaml, component.props)
         }
     }
+
+    // Token replace in the YAML
+    def template = mergedYaml.toString()
+    def replacements = mergedYaml
+
+    replacements.each { key, value ->
+        template = template.replace("\${p:$key}", value)
+    }
+
+    mergedYaml = readYaml text: template
     
     return mergedYaml
 }
@@ -128,6 +138,33 @@ def prepareComponent(targetComponentName, closure) {
     }
 }
 
+def exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, props){
+
+    return "export WHICH_ENV=${props.which_env}
+            export WHICH_SITE=${props.which_site}
+            export APPLICATION_NAME=${props.application_name}
+            export HOSTNAME=${hostYaml.hostname}
+            export HOME_DIR=${props.home_dir}
+            export APP_BINARY_DIR=${props.app_binary_dir}
+            export APP_SERVICE_ACCOUNT=${props.app_service_account}
+            export APP_SERVICE_ACCOUNT_GROUP=${props.app_service_account_group}
+            export KERBEROS_KEYTAB_PATH=${props.kerberos_keytab_path}
+            export KERBEROS_TKT_PATH=${props.kerberos_tkt_path}
+            export COMPONENT_NAME=${componentSnapshot.name}
+            export COMPONENT_VERSION=${componentSnapshot.version}
+            export DOWNLOAD_DIR=${props.download_dir}
+            export DOWNLOAD_DEPLOY_DIR=${props.download_deploy_dir}
+            export DOWNLOAD_COMPONENT_BINARY_DIR=${props.download_dir}/${componentSnapshot.name}
+            export DEPLOY_DIR=${props.deploy_dir}
+            export COMPONENT_BINARY_DIR=${props.app_binary_dir}/${componentSnapshot.name}
+            export COMPONENT_SCRIPTS_DIR=${props.app_binary_dir}/${componentSnapshot.name}/scripts
+            export COMPONENT_LOCAL_DATA_DIR=${props.app_binary_dir}/${componentSnapshot.name}/local-data
+            export APP_LOG_DIR=${props.app_log_dir}
+            # must have a new line here
+
+            "
+}
+
 def downloadComponent( componentName, closure) {
     prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder ->
         echo "Download Component '${targetComponentName}'(version=${componentSnapshot.version}) on Host '${hostYaml.hostname}'"
@@ -141,16 +178,65 @@ def installComponent( componentName, closure) {
     prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder ->
 
         echo "Install Component '${targetComponentName}'(version=${componentSnapshot.version}) on Host '${hostYaml.hostname}'"
-        def mergedYaml = preparePropYaml(hostYaml, "${targetFolder}/groups", targetComponentName)
+        def mergedPropsYaml = preparePropYaml(hostYaml, "${targetFolder}/groups", targetComponentName)
         // // Write the merged YAML to a new file
         
-        def yamlFilename = "output/${hostYaml.hostname}-${targetComponentName}.yaml"
-        writeYaml(file: yamlFilename, data: mergedYaml)
+        def yamlFilename = "output/${hostYaml.hostname}/${componentSnapshot.name}/values.yaml"
+        writeYaml(file: yamlFilename, data: mergedPropsYaml)
         archiveArtifacts artifacts: yamlFilename
 
-        if(closure){
-            closure()
+        def exportedValues = exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, mergedPropsYaml) + '\n'
+        //call liveness check
+        //call install.sh
+
+        sshagent(credentials: ['your_ssh_credentials_id']) {
+            // SSH into the remote server and execute the bash script
+            def sshResult = sshScript remote: "${jenkins_agent}@${hostYaml.host}", script: exportedValues + '''
+                bash $COMPONENT_SCRIPTS_DIR/liveness-check.sh
+            '''
+             // Check the exit status of the SSH command
+            if (sshResult == 0) {
+                error "Error executing SSH script. Job will be stopped."
+            } else {
+                echo "Checked successfully."
+            }
+
+            def sshResult = sshScript remote: "${jenkins_agent}@${hostYaml.host}", script: exportedValues + '''
+                bash $DOWNLOAD_DEPLOY_DIR/install.sh
+            '''
+             // Check the exit status of the SSH command
+            if (sshResult == 0) {
+                echo "SSH script executed successfully."
+            } else {
+                error "Error executing SSH script. Job will be stopped."
+            }
+
+            
+            if(closure){
+                def commandExecutor(cmd, outputToFilename) {
+                    
+                    def sshResult = sshScript remote: "${jenkins_agent}@${hostYaml.host}", script: exportedValues  + cmd
+                    
+                    // Check the exit status of the SSH command
+                    if (sshResult == 0) {
+                        echo "SSH script executed successfully."
+                    } else {
+                        error "Error executing SSH script. Job will be stopped."
+                    }
+                    def stdout = sshResult.out.trim()
+                    def outFilename = "output/${hostYaml.hostname}/${componentSnapshot.name}/$outputToFilename"
+                    writeFile file: outFilename, text: stdout
+                    archiveArtifacts artifacts: outFilename
+                }
+                
+                closure(commandExecutor)
+
+            }
+            
         }
+
+        
+
     }
 }
 
@@ -258,8 +344,9 @@ pipeline {
                         }
                         stage('install') {
                             steps {
-                                installComponent("web1") {
+                                installComponent("web1") { command ->
                                     echo "completed install web1"
+                                    command('cat $COMPONENT_BINARY_DIR/config/application.yaml', "application.yaml")
                                 }
                             }
                         }
