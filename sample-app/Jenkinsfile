@@ -63,11 +63,10 @@ def prepareComponent(targetComponentName, closure) {
     dir('env-config') {
         def componentSnapshots
         componentSnapshots = readYaml(text: env.snapshotContent)
-        def hostYamlFiles
         // def targetFolder = sh(script: 'dirname $0', returnStdout: true).trim() + "/${env.which_env}"
         def targetFolder = env.which_env
         sh(script: "ls ${targetFolder}")
-        hostYamlFiles = findFiles(glob: "${targetFolder}/hosts/*.yaml")
+        def hostYamlFiles = findFiles(glob: "${targetFolder}/hosts/*.yaml")
 
         for (def componentSnapshot in componentSnapshots) {
             
@@ -92,7 +91,7 @@ def prepareComponent(targetComponentName, closure) {
 
 def downloadComponent( componentName, closure) {
     prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml ->
-        echo "Download Component '${targetComponentName}'(version=${componentSnapshot.version}) on Host '${hostYamlFile.hostname}'"
+        echo "Download Component '${targetComponentName}'(version=${componentSnapshot.version}) on Host '${hostYaml.hostname}'"
         if(closure){
             closure()
         }
@@ -102,7 +101,7 @@ def downloadComponent( componentName, closure) {
 def installComponent( componentName, closure) {
     prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml ->
 
-        echo "Install Component '${targetComponentName}'(version=${componentSnapshot.version}) on Host '${hostYamlFile.hostname}'"
+        echo "Install Component '${targetComponentName}'(version=${componentSnapshot.version}) on Host '${hostYaml.hostname}'"
         if(closure){
             closure()
         }
@@ -135,69 +134,69 @@ pipeline {
             }
         }
         
-        // stage('Deploy Components') {
-        //     parallel {
-        //         stage ("web1") {
-        //             stages {
-        //                 stage('download') {
-        //                     steps {
-        //                         downloadComponent("web1") {
-        //                             echo "completed download web1"
-        //                         }
-        //                     }
-        //                 }
-        //                 stage('install') {
-        //                     steps {
-        //                         installComponent("web1") {
-        //                             echo "completed install web1"
-        //                         }
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //         stage ("web2") {
-        //             stages {
-        //                 stage('download') {
-        //                     steps {
-        //                         downloadComponent("web2") {
-        //                             echo "completed download web2"
-        //                         }
+        stage('Deploy Components') {
+            parallel {
+                stage ("web1") {
+                    stages {
+                        stage('download') {
+                            steps {
+                                downloadComponent("web1") {
+                                    echo "completed download web1"
+                                }
+                            }
+                        }
+                        stage('install') {
+                            steps {
+                                installComponent("web1") {
+                                    echo "completed install web1"
+                                }
+                            }
+                        }
+                    }
+                }
+                stage ("web2") {
+                    stages {
+                        stage('download') {
+                            steps {
+                                downloadComponent("web2") {
+                                    echo "completed download web2"
+                                }
                                 
-        //                     }
-        //                 }
-        //                 stage('install') {
-        //                     steps {
-        //                         installComponent("web2") {
-        //                             echo "completed install web2"
-        //                         }
+                            }
+                        }
+                        stage('install') {
+                            steps {
+                                installComponent("web2") {
+                                    echo "completed install web2"
+                                }
                             
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //         stage ("web3") {
-        //             stages {
-        //                 stage('download') {
-        //                     steps {
-        //                         downloadComponent("web3") {
-        //                             echo "completed download web3"
-        //                         }
+                            }
+                        }
+                    }
+                }
+                stage ("web3") {
+                    stages {
+                        stage('download') {
+                            steps {
+                                downloadComponent("web3") {
+                                    echo "completed download web3"
+                                }
                             
-        //                     }
-        //                 }
-        //                 stage('install') {
-        //                     steps {
-        //                         installComponent("web3") {
-        //                             echo "completed install web3"
-        //                         }
+                            }
+                        }
+                        stage('install') {
+                            steps {
+                                installComponent("web3") {
+                                    echo "completed install web3"
+                                }
                             
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     }
+                            }
+                        }
+                    }
+                }
+            }
             
-        // }
+        }
     }
 }
 
