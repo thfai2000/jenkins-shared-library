@@ -213,7 +213,7 @@ def installComponent( componentName, closure) {
 
             
             if(closure){
-                def commandExecutor(cmd, outputToFilename) {
+                def commandExecutor = { cmd, outputToFilename ->
                     
                     def sshResult = sshScript remote: "${hostYaml.host}", script: exportedValues  + cmd
                     
@@ -344,9 +344,9 @@ pipeline {
                         }
                         stage('install') {
                             steps {
-                                installComponent("web1") { command ->
+                                installComponent("web1") { cmd ->
                                     echo "completed install web1"
-                                    command('cat $COMPONENT_BINARY_DIR/config/application.yaml', "application.yaml")
+                                    cmd('cat $COMPONENT_BINARY_DIR/config/application.yaml', "application.yaml")
                                 }
                             }
                         }
