@@ -5,117 +5,152 @@ pipeline {
         VERSION_SNAPSHOT_REPO_NAME = "thfai2000/version_snapshots"
         VERSION_SNAPSHOT_FOLDER_NAME = "sample-app"
         ENV_CONFIG_GIT_SOURCE = 'https://github.com/thfai2000/sample-app-configuration.git'
-
     }
 
     stages {
 
         stage('Checkout Env Config') {
             steps {
-                echo "GIT_BRANCH: ${env.BRANCH_NAME}"
-                echo "VERSION_SNAPSHOT_REPO_NAME: $VERSION_SNAPSHOT_REPO_NAME"
-                dir('env-config') {
-
-                    checkout([$class: 'GitSCM',
-                            branches: [[name: env.BRANCH_NAME]],
-                            doGenerateSubmoduleConfigurations: false,
-                            extensions: [],
-                            submoduleCfg: [],
-                            userRemoteConfigs: [[url: ENV_CONFIG_GIT_SOURCE]]])
-                    script {
-                        folderNames = sh(script: "ls -d */ | xargs -n 1 basename", returnStdout: true).trim().split("\n")
-                    }
-       
-                }
-                echo "type: ${folderNames.getClass()}"
-                echo "folderNames: ${folderNames}"
                 script {
-                    def treeApiUrl = "https://api.github.com/repos/$VERSION_SNAPSHOT_REPO_NAME/contents/$VERSION_SNAPSHOT_FOLDER_NAME?ref=$GIT_BRANCH"
-
-                    def response = httpRequest(url: treeApiUrl, httpMode: 'GET')
-
-                    def files = []
-                    if (response.status == 200) {
-                        def json = readJSON(text: response.content)
-                        files = json.findAll { it.type == 'file' }.collect { it.name }
-                    }
-                    snapshotVersions = files
+                    checkoutEnvConfig()
                 }
-                echo "snapshotVersions: $snapshotVersions"
-                script {
-                    def params = input(message: 'Provide the build information',
-                        ok: "Continue",
-                        parameters: [
-                            choice(name: 'which_env', choices: Arrays.asList(folderNames), description: 'Select the environment'),
-                            choice(name: 'selected_version_snapshot', choices: snapshotVersions, description: 'Select the snapshot version')
-                        ]
-                    )
-                    env.which_env = params.which_env
-                    env.selected_version_snapshot = params.selected_version_snapshot
-                }
-                echo "which_env=${env.which_env}"
-                echo "selected_version_snapshot=${env.selected_version_snapshot}"
-                
             }
         }
-        
-        stage('Loop through Artifacts') {
+        stage('Download Deploy Scripts') {
             steps {
                 script {
-                    def hostYamlFiles
-                    def artifacts
-                    def response = httpRequest(url: getSnapshotUrl(env.selected_version_snapshot))
-                    
-                    if (response.status == 200) {
-                        artifacts = readYaml(text: response.content)
-                    } else {
-                        error "Failed to retrieve YAML file. HTTP status: ${response.status}"
-                    }
-                    dir('env-config') {
-
-                        // def targetFolder = sh(script: 'dirname $0', returnStdout: true).trim() + "/${env.which_env}"
-                        def targetFolder = env.which_env
-                        sh(script: "ls ${targetFolder}")
-                        hostYamlFiles = findFiles(glob: "${targetFolder}/hosts/*.yaml")
-
-                        def stageMap = [:]  // Map to store parallel stages
-                        for (def artifact in artifacts) {
-                            //very important: keep variable of own stage
-                            stageMap["Artifact: ${artifact.name}"] = processComponent(artifact, hostYamlFiles)
-                        }
-
-                        parallel stageMap
-                    }
-                
-                    
+                    downloadDeployScripts()
                 }
             }
         }
         
+        stage('Deploy Components') {   
+            parallel {
+                stage ("web1") {
+                    steps{
+                        script {
+                            processComponent("web1")
+                        }
+                    }
+                }
+                stage ("web2") {
+                    steps{
+                        script {
+                            processComponent("web2")
+                        }
+                    }
+                }
+                stage ("web3") {
+                    steps{
+                        script {
+                            processComponent("web3")
+                        }
+                    }
+                }
+            }
+            
+        }
     }
 }
 
+def getSnapshotUrl(version) {
+    def snapshotUrl = "https://raw.githubusercontent.com/$VERSION_SNAPSHOT_REPO_NAME/$GIT_BRANCH/$VERSION_SNAPSHOT_FOLDER_NAME/$version"
+    return snapshotUrl
+}
 
-def processComponent(currentArtifact, hostYamlFiles) {
-
-    def stageMap = [:]  // Map to store parallel stages
-
-    for (def hostYamlFile in hostYamlFiles) {
-        def hostYaml = readYaml(file: hostYamlFile.path)
-        def hostComponentsYaml = hostYaml.host_components
-        
-        for (def componentYaml in hostComponentsYaml) {
-            if (componentYaml.name == currentArtifact.name) {
-                echo "Artifact '${currentArtifact.name}' found in Host YAML: ${hostYamlFile.name}"
-                stageMap["Host: ${hostYamlFile.name}"] = processComponentOnMachine(currentArtifact, hostYaml, componentYaml ) 
-            }
+def checkoutEnvConfig(){
+    echo "GIT_BRANCH: ${env.BRANCH_NAME}"
+    echo "VERSION_SNAPSHOT_REPO_NAME: $VERSION_SNAPSHOT_REPO_NAME"
+    dir('env-config') {
+        checkout([$class: 'GitSCM',
+                branches: [[name: env.BRANCH_NAME]],
+                doGenerateSubmoduleConfigurations: false,
+                extensions: [],
+                submoduleCfg: [],
+                userRemoteConfigs: [[url: ENV_CONFIG_GIT_SOURCE]]])
+        script {
+            folderNames = sh(script: "ls -d */ | xargs -n 1 basename", returnStdout: true).trim().split("\n")
         }
+
     }
 
+    echo "type: ${folderNames.getClass()}"
+    echo "folderNames: ${folderNames}"
+    
+    def treeApiUrl = "https://api.github.com/repos/$VERSION_SNAPSHOT_REPO_NAME/contents/$VERSION_SNAPSHOT_FOLDER_NAME?ref=$GIT_BRANCH"
+
+    def response = httpRequest(url: treeApiUrl, httpMode: 'GET')
+
+    def files = []
+    if (response.status == 200) {
+        def json = readJSON(text: response.content)
+        files = json.findAll { it.type == 'file' }.collect { it.name }
+    }
+    snapshotVersions = files
+
+    def params = input(message: 'Provide the build information',
+        ok: "Continue",
+        parameters: [
+            choice(name: 'which_env', choices: Arrays.asList(folderNames), description: 'Select the environment'),
+            choice(name: 'selected_version_snapshot', choices: snapshotVersions, description: 'Select the snapshot version')
+        ]
+    )
+    env.which_env = params.which_env
+    env.selected_version_snapshot = params.selected_version_snapshot
+    def response = httpRequest(url: getSnapshotUrl(env.selected_version_snapshot))
+
+    if (response.status == 200) {
+        env.snapshotContent = response.content
+        
+    } else {
+        error "Failed to retrieve YAML file. HTTP status: ${response.status}"
+    }
+    echo "which_env=${env.which_env}"
+    echo "selected_version_snapshot=${env.selected_version_snapshot}"
+}
+
+def downloadDeployScripts() {
+    echo "Done"
+}
+
+def processComponent(targetComponentName){
+    dir('env-config') {
+        def artifacts
+        artifacts = readYaml(text: env.snapshotContent)
+        def hostYamlFiles
+        // def targetFolder = sh(script: 'dirname $0', returnStdout: true).trim() + "/${env.which_env}"
+        def targetFolder = env.which_env
+        sh(script: "ls ${targetFolder}")
+        hostYamlFiles = findFiles(glob: "${targetFolder}/hosts/*.yaml")
+
+        def stageMap = [:]  // Map to store parallel stages
+        for (def artifact in artifacts) {
+            
+            if(targetComponentName == artifact.name){
+
+                for (def hostYamlFile in hostYamlFiles) {
+                    def hostYaml = readYaml(file: hostYamlFile.path)
+                    def hostComponentsYaml = hostYaml.host_components
+                    
+                    for (def componentYaml in hostComponentsYaml) {
+                        if (componentYaml.name == targetComponentName) {
+                            echo "Component '${targetComponentName}' found in Host YAML: ${hostYamlFile.name}"
+                            stageMap["Host: ${hostYamlFile.name}"] = processComponentOnMachine(artifact, targetComponentName, hostYaml, componentYaml ) 
+                        }
+                    }
+                }
+            }
+        }
+
+        parallel stageMap
+    }
+}
+
+def processComponentOnMachine(artifact, componentName, hostYaml, componentYaml) {
 
     return {
                                 
-        echo currentArtifact.name
+        echo "processComponentOnMachine: ${componentName}"
 
         stages {
             stage{
@@ -136,11 +171,7 @@ def processComponent(currentArtifact, hostYamlFiles) {
     }
 }
 
-def processComponentOnMachine(currentArtifact, hostYaml, componentYaml ) {
-    return {
-        echo "install machine ${hostYaml.hostname}"
-    }
-}
+
 
 // def getFolderNames() {
     
@@ -163,7 +194,3 @@ def processComponentOnMachine(currentArtifact, hostYaml, componentYaml ) {
 //     return fileNames
 // }
 
-def getSnapshotUrl(version) {
-    def snapshotUrl = "https://raw.githubusercontent.com/$VERSION_SNAPSHOT_REPO_NAME/$GIT_BRANCH/$VERSION_SNAPSHOT_FOLDER_NAME/$version"
-    return snapshotUrl
-}
