@@ -154,7 +154,49 @@ def installComponent( componentName, closure) {
     }
 }
 
+def dbPatch( componentName, closure) {
+    prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder ->
 
+        echo "DB Patch '${targetComponentName}'on Host '${hostYaml.hostname}'"
+
+        if(closure){
+            closure()
+        }
+    }
+}
+
+def stopComponent( componentName, closure) {
+    prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder ->
+
+        echo "Stop Component '${targetComponentName}'on Host '${hostYaml.hostname}'"
+
+        if(closure){
+            closure()
+        }
+    }
+}
+
+def startComponent( componentName, closure) {
+    prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder ->
+
+        echo "Start Component '${targetComponentName}'on Host '${hostYaml.hostname}'"
+
+        if(closure){
+            closure()
+        }
+    }
+}
+
+def healthCheckComponent( componentName, closure) {
+    prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder ->
+
+        echo "Health Check '${targetComponentName}'on Host '${hostYaml.hostname}'"
+
+        if(closure){
+            closure()
+        }
+    }
+}
 
 pipeline {
     agent any
@@ -173,22 +215,44 @@ pipeline {
                 }
             }
         }
-        stage('Download Deploy Scripts') {
-            steps {
-                downloadComponent("deploy") {
-                    echo "completed download deploy scripts"
+        stage('Download Artifacts') {
+            parallel {
+                stage('deploy') {
+                    steps {
+                        downloadComponent("deploy") {
+                        }
+                    }
                 }
+                stage('web1') {
+                    steps {
+                        downloadComponent("web1") {
+                        }
+                    }
+                }
+                stage('web2') {
+                    steps {
+                        downloadComponent("web2") {
+                        }
+                    }
+                }
+                stage('web3') {
+                    steps {
+                        downloadComponent("web3") {
+                        }
+                    }
+                }
+                   
             }
         }
         
-        stage('Deploy Components') {
+        stage('Stop & Install Components') {
             parallel {
                 stage ("web1") {
                     stages {
-                        stage('download') {
+                        stage('stop') {
                             steps {
-                                downloadComponent("web1") {
-                                    echo "completed download web1"
+                                stopComponent("web1") {
+                                    echo "completed stop web1"
                                 }
                             }
                         }
@@ -203,12 +267,11 @@ pipeline {
                 }
                 stage ("web2") {
                     stages {
-                        stage('download') {
+                        stage('stop') {
                             steps {
-                                downloadComponent("web2") {
-                                    echo "completed download web2"
+                                stopComponent("web2") {
+                                    echo "completed stop web2"
                                 }
-                                
                             }
                         }
                         stage('install') {
@@ -223,12 +286,11 @@ pipeline {
                 }
                 stage ("web3") {
                     stages {
-                        stage('download') {
+                        stage('stop') {
                             steps {
-                                downloadComponent("web3") {
-                                    echo "completed download web3"
+                                stopComponent("web3") {
+                                    echo "completed stop web3"
                                 }
-                            
                             }
                         }
                         stage('install') {
@@ -239,10 +301,63 @@ pipeline {
                             
                             }
                         }
+                        stage('db patch') {
+                            steps {
+                                dbPatch("web3") {
+                                    echo "completed dbPatch"
+                                }
+                            }
+                        }
                     }
                 }
             }
             
+        }
+
+        stage('Start Components') {
+            parallel {
+                stage('web1') {
+                    steps {
+                        startComponent("web1") {
+                        }
+                    }
+                }
+                stage('web2') {
+                    steps {
+                        startComponent("web2") {
+                        }
+                    }
+                }
+                stage('web3') {
+                    steps {
+                        startComponent("web3") {
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Health Check Components') {
+            parallel {
+                stage('web1') {
+                    steps {
+                        healthCheckComponent("web1") {
+                        }
+                    }
+                }
+                stage('web2') {
+                    steps {
+                        healthCheckComponent("web2") {
+                        }
+                    }
+                }
+                stage('web3') {
+                    steps {
+                        healthCheckComponent("web3") {
+                        }
+                    }
+                }
+            }
         }
     }
     post {
