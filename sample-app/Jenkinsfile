@@ -241,7 +241,7 @@ def installComponent( componentName, closure) {
                 bash $COMPONENT_SCRIPTS_DIR/liveness-check.sh
             '''
             def sshCommand = "ssh -i $SSH_KEY '${hostYaml.host}' '$remoteCommand'"
-            def sshResult = sh script: sshCommand, returnStdout: true, returnStatus: true
+            def sshResult = sh script: sshCommand, returnStatus: true
             def exitCode = sshResult.returnStatus
              // Check the exit status of the SSH command
             if (exitCode == 0) {
@@ -254,7 +254,7 @@ def installComponent( componentName, closure) {
                 bash $DOWNLOAD_DEPLOY_DIR/install.sh
             '''
             sshCommand = "ssh -i $SSH_KEY '${hostYaml.host}' '$remoteCommand'"
-            sshResult = sh script: sshCommand, returnStdout: true, returnStatus: true
+            sshResult = sh script: sshCommand, returnStatus: true
             exitCode = sshResult.returnStatus
              // Check the exit status of the SSH command
             if (exitCode == 0) {
@@ -267,16 +267,10 @@ def installComponent( componentName, closure) {
                 def commandExecutor = { cmd, outputToFilename ->
 
                     def sshResultExecutor = "ssh -i $SSH_KEY '${hostYaml.host}' '$exportedValues $cmd'"
-
+                    def sshResultExecutorStdout = sh script: sshCommand, returnStdout: true
                     // Check the exit status of the SSH command
-                    if (sshResultExecutor.returnStatus == 0) {
-                        echo "SSH script executed successfully."
-                    } else {
-                        error "Error executing SSH script. Job will be stopped."
-                    }
-                    def stdout = sshResultExecutor.out.trim()
                     def outFilename = "output/${hostYaml.hostname}/${componentSnapshot.name}/$outputToFilename"
-                    writeFile file: outFilename, text: stdout
+                    writeFile file: outFilename, text: sshResultExecutorStdout
                     archiveArtifacts artifacts: outFilename
                 
                 }
