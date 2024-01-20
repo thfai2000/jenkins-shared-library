@@ -146,7 +146,7 @@ def processComponent(targetComponentName){
     }
 }
 
-def processComponentOnMachine(componentVersion, componentName, hostYaml, componentYaml) {
+def processComponentOnMachine(componentSnapshot , componentName, hostYaml, componentYaml) {
 
     return {
         echo "Host: ${hostYaml.hostname}"                        
