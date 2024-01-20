@@ -144,8 +144,7 @@ def installComponent( componentName, closure) {
         // // Write the merged YAML to a new file
         
         writeYaml(file: "output/${hostYaml.hostname}-${targetComponentName}.yaml", data: mergedYaml)
-        archiveArtifacts artifacts: 'output/*.yaml'
-
+        
         if(closure){
             closure()
         }
@@ -241,6 +240,11 @@ pipeline {
                 }
             }
             
+        }
+    }
+    post {
+        always {
+            archiveArtifacts artifacts: 'output/*.yaml'
         }
     }
 }
