@@ -140,9 +140,11 @@ def installComponent( componentName, closure) {
 
         echo "Install Component '${targetComponentName}'(version=${componentSnapshot.version}) on Host '${hostYaml.hostname}'"
         def preparePropYaml = "groups"
-        preparePropYaml(hostYaml, groups_dir_path, targetComponentName)
+        def mergedYaml = preparePropYaml(hostYaml, groups_dir_path, targetComponentName)
         // // Write the merged YAML to a new file
-        // writeYaml(file: 'path/to/merged.yaml', data: mergedYaml)
+        
+        writeYaml(file: "output/${hostYaml.hostname}-${targetComponentName}.yaml", data: mergedYaml)
+        archiveArtifacts artifacts: 'output/*.yaml'
 
         if(closure){
             closure()
