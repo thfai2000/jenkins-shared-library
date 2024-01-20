@@ -115,8 +115,7 @@ def prepareComponent(targetComponentName, closure) {
                     for (def componentYaml in hostComponentsYaml) {
                         if (componentYaml.name == targetComponentName) {
                             if(closure){
-                                def massagedProperties
-                                closure(targetComponentName, componentSnapshot, hostYaml, componentYaml, massagedProperties)
+                                closure(targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder)
                             }
                         }
                     }
@@ -127,7 +126,7 @@ def prepareComponent(targetComponentName, closure) {
 }
 
 def downloadComponent( componentName, closure) {
-    prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml ->
+    prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder ->
         echo "Download Component '${targetComponentName}'(version=${componentSnapshot.version}) on Host '${hostYaml.hostname}'"
         if(closure){
             closure()
@@ -136,15 +135,16 @@ def downloadComponent( componentName, closure) {
 }
 
 def installComponent( componentName, closure) {
-    prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml ->
+    prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder ->
 
         echo "Install Component '${targetComponentName}'(version=${componentSnapshot.version}) on Host '${hostYaml.hostname}'"
-        def groups_dir_path = "groups"
-        def mergedYaml = preparePropYaml(hostYaml, groups_dir_path, targetComponentName)
+        def mergedYaml = preparePropYaml(hostYaml, "${targetFolder}/groups", targetComponentName)
         // // Write the merged YAML to a new file
         
-        writeYaml(file: "output/${hostYaml.hostname}-${targetComponentName}.yaml", data: mergedYaml)
-        
+        def yamlFilename = "output/${hostYaml.hostname}-${targetComponentName}.yaml"
+        writeYaml(file: yamlFilename, data: mergedYaml)
+        archiveArtifacts artifacts: yamlFilename
+
         if(closure){
             closure()
         }
@@ -244,7 +244,7 @@ pipeline {
     }
     post {
         always {
-            archiveArtifacts artifacts: 'output/*.yaml'
+            echo "completed."
         }
     }
 }
