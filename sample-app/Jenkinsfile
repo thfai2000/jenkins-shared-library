@@ -59,25 +59,6 @@ def checkoutEnvConfig(closure){
     echo "selected_version_snapshot=${env.selected_version_snapshot}"
 }
 
-def downloadComponent( componentName, closure) {
-    prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml ->
-        echo "Download Component '${targetComponentName}'(version=${componentSnapshot.version}) on Host '${hostYamlFile.hostname}'"
-        if(closure){
-            closure()
-        }
-    }
-}
-
-def installComponent( componentName, closure) {
-    prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml ->
-
-        echo "Install Component '${targetComponentName}'(version=${componentSnapshot.version}) on Host '${hostYamlFile.hostname}'"
-        if(closure){
-            closure()
-        }
-    }
-}
-
 def prepareComponent(targetComponentName, closure) {
     dir('env-config') {
         def componentSnapshots
@@ -98,7 +79,9 @@ def prepareComponent(targetComponentName, closure) {
                     
                     for (def componentYaml in hostComponentsYaml) {
                         if (componentYaml.name == targetComponentName) {
-                            closure(targetComponentName, componentSnapshot, hostYaml, componentYaml)
+                            if(closure){
+                                closure(targetComponentName, componentSnapshot, hostYaml, componentYaml)
+                            }
                         }
                     }
                 }
@@ -106,6 +89,26 @@ def prepareComponent(targetComponentName, closure) {
         }
     }
 }
+
+def downloadComponent( componentName, closure) {
+    prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml ->
+        echo "Download Component '${targetComponentName}'(version=${componentSnapshot.version}) on Host '${hostYamlFile.hostname}'"
+        if(closure){
+            closure()
+        }
+    }
+}
+
+def installComponent( componentName, closure) {
+    prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml ->
+
+        echo "Install Component '${targetComponentName}'(version=${componentSnapshot.version}) on Host '${hostYamlFile.hostname}'"
+        if(closure){
+            closure()
+        }
+    }
+}
+
 
 pipeline {
     agent any
@@ -124,13 +127,13 @@ pipeline {
                 }
             }
         }
-        // stage('Download Deploy Scripts') {
-        //     steps {
-        //         downloadComponent("deploy") {
-        //             echo "completed download deploy scripts"
-        //         }
-        //     }
-        // }
+        stage('Download Deploy Scripts') {
+            steps {
+                downloadComponent("deploy") {
+                    echo "completed download deploy scripts"
+                }
+            }
+        }
         
         // stage('Deploy Components') {
         //     parallel {
