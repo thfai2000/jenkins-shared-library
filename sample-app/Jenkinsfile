@@ -24,7 +24,7 @@ pipeline {
             }
         }
         
-        stage('Deploy Components') {   
+        stage('Deploy Components') {
             parallel {
                 stage ("web1") {
                     steps{
@@ -115,8 +115,8 @@ def downloadDeployScripts() {
 
 def processComponent(targetComponentName){
     dir('env-config') {
-        def artifacts
-        artifacts = readYaml(text: env.snapshotContent)
+        def componentSnapshots
+        componentSnapshots = readYaml(text: env.snapshotContent)
         def hostYamlFiles
         // def targetFolder = sh(script: 'dirname $0', returnStdout: true).trim() + "/${env.which_env}"
         def targetFolder = env.which_env
@@ -124,9 +124,9 @@ def processComponent(targetComponentName){
         hostYamlFiles = findFiles(glob: "${targetFolder}/hosts/*.yaml")
 
         def stageMap = [:]  // Map to store parallel stages
-        for (def artifact in artifacts) {
+        for (def componentSnapshot in componentSnapshots) {
             
-            if(targetComponentName == artifact.name){
+            if(targetComponentName == componentSnapshot.name){
 
                 for (def hostYamlFile in hostYamlFiles) {
                     def hostYaml = readYaml(file: hostYamlFile.path)
@@ -135,7 +135,7 @@ def processComponent(targetComponentName){
                     for (def componentYaml in hostComponentsYaml) {
                         if (componentYaml.name == targetComponentName) {
                             echo "Component '${targetComponentName}' found in Host YAML: ${hostYamlFile.name}"
-                            stageMap["Host: ${hostYamlFile.name}"] = processComponentOnMachine(artifact, targetComponentName, hostYaml, componentYaml ) 
+                            stageMap["Host: ${hostYamlFile.name}"] = processComponentOnMachine(componentSnapshot, targetComponentName, hostYaml, componentYaml ) 
                         }
                     }
                 }
@@ -146,28 +146,12 @@ def processComponent(targetComponentName){
     }
 }
 
-def processComponentOnMachine(artifact, componentName, hostYaml, componentYaml) {
+def processComponentOnMachine(componentVersion, componentName, hostYaml, componentYaml) {
 
     return {
-                                
+        echo "Host: ${hostYaml.hostname}"                        
         echo "processComponentOnMachine: ${componentName}"
-
-        stages {
-            stage{
-                steps {
-
-                    echo "download"
-                }
-            }
-
-            stage{
-                steps {
-
-                    echo "install"
-                }
-            }
-        }
-
+        echo "download version ${componentSnapshot.version}"
     }
 }
 
