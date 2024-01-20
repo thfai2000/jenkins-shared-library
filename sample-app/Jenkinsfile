@@ -100,7 +100,9 @@ def preparePropYaml(hostYaml, groups_dir_path, targetComponentName) {
     def replacements = mergedYaml
 
     replacements.each { key, value ->
-        template = template.replace("\${p:$key}", value)
+        if (value instanceof String) {
+            template = template.replace("\${p:$key}", value)
+        }
     }
 
     mergedYaml = readYaml text: template
