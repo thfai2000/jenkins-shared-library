@@ -1,3 +1,13 @@
+Map merge(Map... maps) {
+    Map result = [:]
+    maps.each { map ->
+        map.each { k, v ->
+            result[k] = result[k] instanceof Map ? merge(result[k], v) : v
+        }
+    }
+
+    result
+}
 
 def getSnapshotUrl(version) {
     def snapshotUrl = "https://raw.githubusercontent.com/$VERSION_SNAPSHOT_REPO_NAME/$GIT_BRANCH/$VERSION_SNAPSHOT_FOLDER_NAME/$version"
@@ -62,6 +72,29 @@ def selectSnapshotAndEnv(closure){
     echo "selected_version_snapshot=${env.selected_version_snapshot}"
 }
 
+def preparePropYaml(hostYaml, groups_dir_path, targetComponentName) {
+    // Read the Host YAML file
+    def mergedYaml = hostYaml.props // Initialize the merged YAML object
+
+    // Iterate over the host groups in the same order as mentioned in the Host YAML
+    for (group in hostYaml.host_groups) {
+        // Read the corresponding Group YAML file
+        def groupYaml = readYaml(file: "${groups_dir_path}/${group}.yaml")
+
+        // Merge the 'props' section of the Host YAML with the Group YAML
+        mergedYaml = merge(mergedYaml, groupYaml)
+    }
+
+    for (component in hostYaml.host_components) {
+        if( component.name == targetComponentName){
+            // Merge the 'props' section of the specific 'host_components' YAML with the merged YAML
+            mergedYaml = merge(mergedYaml, component.props)
+        }
+    }
+    
+    return mergedYaml
+}
+
 def prepareComponent(targetComponentName, closure) {
     dir('env-config') {
         checkoutEnvConfig()
@@ -82,7 +115,8 @@ def prepareComponent(targetComponentName, closure) {
                     for (def componentYaml in hostComponentsYaml) {
                         if (componentYaml.name == targetComponentName) {
                             if(closure){
-                                closure(targetComponentName, componentSnapshot, hostYaml, componentYaml)
+                                def massagedProperties
+                                closure(targetComponentName, componentSnapshot, hostYaml, componentYaml, massagedProperties)
                             }
                         }
                     }
@@ -105,11 +139,17 @@ def installComponent( componentName, closure) {
     prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml ->
 
         echo "Install Component '${targetComponentName}'(version=${componentSnapshot.version}) on Host '${hostYaml.hostname}'"
+        def preparePropYaml = "groups"
+        preparePropYaml(hostYaml, groups_dir_path, targetComponentName)
+        // // Write the merged YAML to a new file
+        // writeYaml(file: 'path/to/merged.yaml', data: mergedYaml)
+
         if(closure){
             closure()
         }
     }
 }
+
 
 
 pipeline {
