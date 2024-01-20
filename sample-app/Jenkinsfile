@@ -234,29 +234,34 @@ def installComponent( componentName, closure) {
         //call liveness check
         //call install.sh
 
-        sshagent(credentials: ['jenkins-agent-for-vm-deployment']) {
+        withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-agent-for-vm-deployment', keyFileVariable: 'SSH_KEY')]) {
             // SSH into the remote server and execute the bash script
-            def sshResult = sshScript remote: "${hostYaml.host}", script: exportedValues + '''
+
+            def remoteCommand = exportedValues + '''
                 bash $COMPONENT_SCRIPTS_DIR/liveness-check.sh
             '''
+            def sshCommand = "ssh -i $SSH_KEY "${hostYaml.host}" '$remoteCommand'"
+            def sshResult = sh script: sshCommand, returnStdout: true, returnStatus: true
+            def exitCode = sshResult.returnStatus
              // Check the exit status of the SSH command
-            if (sshResult == 0) {
+            if (exitCode == 0) {
                 error "Error executing SSH script. Job will be stopped."
             } else {
                 echo "Checked successfully."
             }
 
-            sshResult = sshScript remote: "${hostYaml.host}", script: exportedValues + '''
+            remoteCommand = exportedValues + '''
                 bash $DOWNLOAD_DEPLOY_DIR/install.sh
             '''
+            sshResult = sh script: sshCommand, returnStdout: true, returnStatus: true
+            def exitCode = sshResult.returnStatus
              // Check the exit status of the SSH command
-            if (sshResult == 0) {
+            if (exitCode == 0) {
                 echo "SSH script executed successfully."
             } else {
                 error "Error executing SSH script. Job will be stopped."
             }
 
-            
             if(closure){
                 def commandExecutor = { cmd, outputToFilename ->
                     
