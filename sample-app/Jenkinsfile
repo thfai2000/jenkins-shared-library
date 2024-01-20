@@ -189,9 +189,9 @@ def installComponent( componentName, closure) {
         //call liveness check
         //call install.sh
 
-        sshagent(credentials: ['your_ssh_credentials_id']) {
+        sshagent(credentials: ['jenkins-agent-for-vm-deployment']) {
             // SSH into the remote server and execute the bash script
-            def sshResult = sshScript remote: "${jenkins_agent}@${hostYaml.host}", script: exportedValues + '''
+            def sshResult = sshScript remote: "${hostYaml.host}", script: exportedValues + '''
                 bash $COMPONENT_SCRIPTS_DIR/liveness-check.sh
             '''
              // Check the exit status of the SSH command
@@ -201,7 +201,7 @@ def installComponent( componentName, closure) {
                 echo "Checked successfully."
             }
 
-            def sshResult = sshScript remote: "${jenkins_agent}@${hostYaml.host}", script: exportedValues + '''
+            def sshResult = sshScript remote: "${hostYaml.host}", script: exportedValues + '''
                 bash $DOWNLOAD_DEPLOY_DIR/install.sh
             '''
              // Check the exit status of the SSH command
@@ -215,7 +215,7 @@ def installComponent( componentName, closure) {
             if(closure){
                 def commandExecutor(cmd, outputToFilename) {
                     
-                    def sshResult = sshScript remote: "${jenkins_agent}@${hostYaml.host}", script: exportedValues  + cmd
+                    def sshResult = sshScript remote: "${hostYaml.host}", script: exportedValues  + cmd
                     
                     // Check the exit status of the SSH command
                     if (sshResult == 0) {
