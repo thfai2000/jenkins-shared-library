@@ -185,29 +185,26 @@ def prepareComponent(targetComponentName, closure) {
 
 def exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, props){
 
-    return '''export WHICH_ENV=${props.which_env}
-            export WHICH_SITE=${props.which_site}
-            export APPLICATION_NAME=${props.application_name}
-            export HOSTNAME=${hostYaml.hostname}
-            export HOME_DIR=${props.home_dir}
-            export APP_BINARY_DIR=${props.app_binary_dir}
-            export APP_SERVICE_ACCOUNT=${props.app_service_account}
-            export APP_SERVICE_ACCOUNT_GROUP=${props.app_service_account_group}
-            export KERBEROS_KEYTAB_PATH=${props.kerberos_keytab_path}
-            export KERBEROS_TKT_PATH=${props.kerberos_tkt_path}
-            export COMPONENT_NAME=${componentSnapshot.name}
-            export COMPONENT_VERSION=${componentSnapshot.version}
-            export DOWNLOAD_DIR=${props.download_dir}
-            export DOWNLOAD_DEPLOY_DIR=${props.download_deploy_dir}
-            export DOWNLOAD_COMPONENT_BINARY_DIR=${props.download_dir}/${componentSnapshot.name}
-            export DEPLOY_DIR=${props.deploy_dir}
-            export COMPONENT_BINARY_DIR=${props.app_binary_dir}/${componentSnapshot.name}
-            export COMPONENT_SCRIPTS_DIR=${props.app_binary_dir}/${componentSnapshot.name}/scripts
-            export COMPONENT_LOCAL_DATA_DIR=${props.app_binary_dir}/${componentSnapshot.name}/local-data
-            export APP_LOG_DIR=${props.app_log_dir}
-            # must have a new line here
-
-            '''
+    return  "export WHICH_ENV=${props.which_env}\n" +
+            "export WHICH_SITE=${props.which_site}\n" +
+            "export APPLICATION_NAME=${props.application_name}\n" +
+            "export HOSTNAME=${hostYaml.hostname}\n" +
+            "export HOME_DIR=${props.home_dir}\n" +
+            "export APP_BINARY_DIR=${props.app_binary_dir}\n" +
+            "export APP_SERVICE_ACCOUNT=${props.app_service_account}\n" +
+            "export APP_SERVICE_ACCOUNT_GROUP=${props.app_service_account_group}\n" +
+            "export KERBEROS_KEYTAB_PATH=${props.kerberos_keytab_path}\n" +
+            "export KERBEROS_TKT_PATH=${props.kerberos_tkt_path}\n" +
+            "export COMPONENT_NAME=${componentSnapshot.name}\n" +
+            "export COMPONENT_VERSION=${componentSnapshot.version}\n" +
+            "export DOWNLOAD_DIR=${props.download_dir}\n" +
+            "export DOWNLOAD_DEPLOY_DIR=${props.download_deploy_dir}\n" +
+            "export DOWNLOAD_COMPONENT_BINARY_DIR=${props.download_dir}/${componentSnapshot.name}\n" +
+            "export DEPLOY_DIR=${props.deploy_dir}\n" +
+            "export COMPONENT_BINARY_DIR=${props.app_binary_dir}/${componentSnapshot.name}\n" +
+            "export COMPONENT_SCRIPTS_DIR=${props.app_binary_dir}/${componentSnapshot.name}/scripts\n" +
+            "export COMPONENT_LOCAL_DATA_DIR=${props.app_binary_dir}/${componentSnapshot.name}/local-data\n" +
+            "export APP_LOG_DIR=${props.app_log_dir}\n"
 }
 
 def downloadComponent( componentName, closure) {
