@@ -74,7 +74,7 @@ def selectSnapshotAndEnv(closure){
 
 def preparePropYaml(hostYaml, groups_dir_path, targetComponentName) {
     // Read the Host YAML file
-    def mergedYaml = hostYaml.props // Initialize the merged YAML object
+    def mergedYaml = [:] // Initialize the merged YAML object
 
     // Iterate over the host groups in the same order as mentioned in the Host YAML
     for (group in hostYaml.host_groups) {
@@ -84,6 +84,9 @@ def preparePropYaml(hostYaml, groups_dir_path, targetComponentName) {
         // Merge the 'props' section of the Host YAML with the Group YAML
         mergedYaml = merge(mergedYaml, groupYaml)
     }
+
+    // Merge the 'props' section of the Host YAML
+    mergedYaml = merge(mergedYaml, hostYaml.props)
 
     for (component in hostYaml.host_components) {
         if( component.name == targetComponentName){
