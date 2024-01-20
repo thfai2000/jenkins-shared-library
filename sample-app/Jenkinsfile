@@ -215,15 +215,15 @@ def installComponent( componentName, closure) {
             if(closure){
                 def commandExecutor = { cmd, outputToFilename ->
                     
-                    def sshResult = sshScript remote: "${hostYaml.host}", script: exportedValues  + cmd
+                    def sshResultExecutor = sshScript remote: "${hostYaml.host}", script: exportedValues  + cmd
                     
                     // Check the exit status of the SSH command
-                    if (sshResult == 0) {
+                    if (sshResultExecutor == 0) {
                         echo "SSH script executed successfully."
                     } else {
                         error "Error executing SSH script. Job will be stopped."
                     }
-                    def stdout = sshResult.out.trim()
+                    def stdout = sshResultExecutor.out.trim()
                     def outFilename = "output/${hostYaml.hostname}/${componentSnapshot.name}/$outputToFilename"
                     writeFile file: outFilename, text: stdout
                     archiveArtifacts artifacts: outFilename
