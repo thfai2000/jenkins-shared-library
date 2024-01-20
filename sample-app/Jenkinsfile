@@ -240,7 +240,7 @@ def installComponent( componentName, closure) {
             def remoteCommand = exportedValues + '''
                 bash $COMPONENT_SCRIPTS_DIR/liveness-check.sh
             '''
-            def sshCommand = "ssh -i $SSH_KEY "${hostYaml.host}" '$remoteCommand'"
+            def sshCommand = "ssh -i $SSH_KEY '${hostYaml.host}' '$remoteCommand'"
             def sshResult = sh script: sshCommand, returnStdout: true, returnStatus: true
             def exitCode = sshResult.returnStatus
              // Check the exit status of the SSH command
@@ -253,6 +253,7 @@ def installComponent( componentName, closure) {
             remoteCommand = exportedValues + '''
                 bash $DOWNLOAD_DEPLOY_DIR/install.sh
             '''
+            sshCommand = "ssh -i $SSH_KEY '${hostYaml.host}' '$remoteCommand'"
             sshResult = sh script: sshCommand, returnStdout: true, returnStatus: true
             exitCode = sshResult.returnStatus
              // Check the exit status of the SSH command
@@ -265,7 +266,7 @@ def installComponent( componentName, closure) {
             if(closure){
                 def commandExecutor = { cmd, outputToFilename ->
 
-                    def sshResultExecutor = "ssh -i $SSH_KEY "${hostYaml.host}" '$exportedValues $cmd'"
+                    def sshResultExecutor = "ssh -i $SSH_KEY '${hostYaml.host}' '$exportedValues $cmd'"
 
                     // Check the exit status of the SSH command
                     if (sshResultExecutor.returnStatus == 0) {
