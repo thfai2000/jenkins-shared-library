@@ -201,7 +201,7 @@ def installComponent( componentName, closure) {
                 echo "Checked successfully."
             }
 
-            def sshResult = sshScript remote: "${hostYaml.host}", script: exportedValues + '''
+            sshResult = sshScript remote: "${hostYaml.host}", script: exportedValues + '''
                 bash $DOWNLOAD_DEPLOY_DIR/install.sh
             '''
              // Check the exit status of the SSH command
