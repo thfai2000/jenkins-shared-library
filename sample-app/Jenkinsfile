@@ -184,6 +184,9 @@ def prepareComponent(targetComponentName, closure) {
 }
 
 def exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, props) {
+
+    echo "Environment variables - start preparing"
+
     def variables = [
         'WHICH_ENV': env.which_env,
         'WHICH_SITE': props.which_site,
@@ -209,6 +212,8 @@ def exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, props) {
     def exportedValues = variables.collect { key, value ->
         "export ${key}=${value}\n"
     }.join()
+
+    echo "Environment variables - prepared"
 
     return [exportedValues: exportedValues, variables: variables]
 }
@@ -243,12 +248,10 @@ def downloadComponent( componentName, closure) {
         echo "Download Component '${targetComponentName}'(version=${componentSnapshot.version}) on Host '${hostYaml.hostname}'"
         def mergedPropsYaml = preparePropYaml(hostYaml, "${targetFolder}/groups", targetComponentName)
         sh "curl -o ${componentSnapshot.name}.zip ${componentSnapshot.artifact_path}"
-
+        
         def platformEnv = exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, mergedPropsYaml) 
         def exportedValues = platformEnv.exportedValues + "\n"
         def variables = platformEnv.variables
-
-        echo "xxxxx"
 
         sshWrapper(targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder){ remote ->
             // SSH into the remote server and execute the bash script
