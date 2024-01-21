@@ -247,7 +247,7 @@ def downloadComponent( componentName, closure) {
         def (exportedValues, variables) = exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, mergedPropsYaml) + '\n'
         sshWrapper(targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder){ remote ->
             // SSH into the remote server and execute the bash script
-            def remoteCommand = ''
+
             def destination = ''
             if(componentName == 'deploy'){
                 destination = variables.DOWNLOAD_COMPONENT_BINARY_DIR
