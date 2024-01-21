@@ -288,7 +288,8 @@ def downloadComponent( componentName, closure) {
                 elif [[ \$(file -b --mime-type "\$file") == application/zip ]]; then
                     sudo unzip "\$file" -d .
                 else
-                    echo "Unknown file format: \$file"
+                    echo "Unknown or unexpected file format: \$file"
+                    exit 1
                 fi
                 sudo chown -R ${variables.APP_SERVICE_ACCOUNT}:${variables.APP_SERVICE_ACCOUNT_GROUP} ${destination}
                 sudo chmod -R 755 ${destination}
