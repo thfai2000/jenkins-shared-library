@@ -248,6 +248,8 @@ def downloadComponent( componentName, closure) {
         def exportedValues = platformEnv.exportedValues + "\n"
         def variables = platformEnv.variables
 
+        echo "xxxxx"
+
         sshWrapper(targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder){ remote ->
             // SSH into the remote server and execute the bash script
 
