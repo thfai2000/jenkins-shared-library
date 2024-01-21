@@ -251,22 +251,21 @@ def downloadComponent( componentName, closure) {
         def artifactFilename = "${componentSnapshot.name}.zip"
         def artifactPath = "${targetFolder}/${artifactFilename}"
         echo "Download to ${artifactPath}"
-        sh "curl -L -o ${artifactPath} ${componentSnapshot.artifact_path}"
+        sh "wget -o ${artifactPath} ${componentSnapshot.artifact_path}"
         sh "ls -l ${artifactPath}"
         sh "realpath ${artifactPath}"
         def platformEnv = exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, mergedPropsYaml) 
         def exportedValues = platformEnv.exportedValues
         def variables = platformEnv.variables
+        def destination = ''
+        if(componentName == 'deploy'){
+            destination = variables.DOWNLOAD_DEPLOY_DIR
+        } else{
+            destination = variables.DOWNLOAD_COMPONENT_BINARY_DIR
+        }
 
         sshWrapper(targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder){ remote ->
             // SSH into the remote server and execute the bash script
-
-            def destination = ''
-            if(componentName == 'deploy'){
-                destination = variables.DOWNLOAD_COMPONENT_BINARY_DIR
-            } else{
-                destination = variables.DOWNLOAD_DEPLOY_DIR
-            }
 
             def result = sshCommand remote: remote, command: """
                 sudo mkdir -p ${destination}
