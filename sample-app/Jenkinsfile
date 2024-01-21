@@ -247,7 +247,11 @@ def downloadComponent( componentName, closure) {
     prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder ->
         echo "Download Component '${targetComponentName}'(version=${componentSnapshot.version}) on Host '${hostYaml.hostname}'"
         def mergedPropsYaml = preparePropYaml(hostYaml, "${targetFolder}/groups", targetComponentName)
-        sh "curl -o ${componentSnapshot.name}.zip ${componentSnapshot.artifact_path}"
+
+        def artifactFilename = "${componentSnapshot.name}.zip"
+        def artifactPath = "${targetFolder}/${artifactFilename}"
+        echo "Download to ${artifactPath}"
+        sh "curl -o ${artifactPath} ${componentSnapshot.artifact_path}"
         
         def platformEnv = exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, mergedPropsYaml) 
         def exportedValues = platformEnv.exportedValues
@@ -269,11 +273,11 @@ def downloadComponent( componentName, closure) {
                 sudo rm -rf ${destination}/*
             """
             
-            sshPut remote: remote, from: "${componentSnapshot.name}.zip", into: "${destination}/raw/."
+            sshPut remote: remote, from: "${artifactPath}", into: "${destination}/raw/${artifactFilename}"
             
             sshCommand remote: remote, command: """
                 cd ${destination}
-                file=raw/${componentSnapshot.name}.zip
+                file=${destination}/raw/${artifactFilename}
                 
                 if [[ \$(file -b --mime-type "\$file") == application/gzip ]]; then
                     sudo tar -xzf "\$file" -C .
