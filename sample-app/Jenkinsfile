@@ -276,11 +276,11 @@ def downloadComponent( componentName, closure) {
                 file=raw/${componentSnapshot.name}.zip
                 
                 if [[ \$(file -b --mime-type "\$file") == application/gzip ]]; then
-                    tar -xzf "\$file" -C .
+                    sudo tar -xzf "\$file" -C .
                 elif [[ \$(file -b --mime-type "\$file") == application/x-tar ]]; then
-                    tar -xf "\$file" -C .
+                    sudo tar -xf "\$file" -C .
                 elif [[ \$(file -b --mime-type "\$file") == application/zip ]]; then
-                    unzip "\$file" -d .
+                    sudo unzip "\$file" -d .
                 else
                     echo "Unknown file format: \$file"
                 fi
