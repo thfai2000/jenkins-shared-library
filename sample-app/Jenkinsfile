@@ -183,35 +183,103 @@ def prepareComponent(targetComponentName, closure) {
     }
 }
 
-def exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, props){
+def exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, props) {
+    def variables = [
+        'WHICH_ENV': env.which_env,
+        'WHICH_SITE': props.which_site,
+        'APPLICATION_NAME': props.application_name,
+        'HOSTNAME': hostYaml.hostname,
+        'HOME_DIR': props.home_dir,
+        'APP_BINARY_DIR': props.app_binary_dir,
+        'APP_SERVICE_ACCOUNT': props.app_service_account,
+        'APP_SERVICE_ACCOUNT_GROUP': props.app_service_account_group,
+        'KERBEROS_KEYTAB_PATH': props.kerberos_keytab_path,
+        'KERBEROS_TKT_PATH': props.kerberos_tkt_path,
+        'COMPONENT_NAME': componentSnapshot.name,
+        'COMPONENT_VERSION': componentSnapshot.version,
+        'DOWNLOAD_DIR': props.download_dir,
+        'DOWNLOAD_DEPLOY_DIR': props.download_deploy_dir,
+        'DOWNLOAD_COMPONENT_BINARY_DIR': "${props.download_dir}/${componentSnapshot.name}",
+        'COMPONENT_BINARY_DIR': "${props.app_binary_dir}/${componentSnapshot.name}",
+        'COMPONENT_SCRIPTS_DIR': "${props.app_binary_dir}/${componentSnapshot.name}/scripts",
+        'COMPONENT_LOCAL_DATA_DIR': "${props.app_binary_dir}/${componentSnapshot.name}/local-data",
+        'APP_LOG_DIR': props.app_log_dir
+    ]
 
-    return  "export WHICH_ENV=${env.which_env}\n" +
-            "export WHICH_SITE=${props.which_site}\n" +
-            "export APPLICATION_NAME=${props.application_name}\n" +
-            "export HOSTNAME=${hostYaml.hostname}\n" +
-            "export HOME_DIR=${props.home_dir}\n" +
-            "export APP_BINARY_DIR=${props.app_binary_dir}\n" +
-            "export APP_SERVICE_ACCOUNT=${props.app_service_account}\n" +
-            "export APP_SERVICE_ACCOUNT_GROUP=${props.app_service_account_group}\n" +
-            "export KERBEROS_KEYTAB_PATH=${props.kerberos_keytab_path}\n" +
-            "export KERBEROS_TKT_PATH=${props.kerberos_tkt_path}\n" +
-            "export COMPONENT_NAME=${componentSnapshot.name}\n" +
-            "export COMPONENT_VERSION=${componentSnapshot.version}\n" +
-            "export DOWNLOAD_DIR=${props.download_dir}\n" +
-            "export DOWNLOAD_DEPLOY_DIR=${props.download_deploy_dir}\n" +
-            "export DOWNLOAD_COMPONENT_BINARY_DIR=${props.download_dir}/${componentSnapshot.name}\n" +
-            "export DEPLOY_DIR=${props.deploy_dir}\n" +
-            "export COMPONENT_BINARY_DIR=${props.app_binary_dir}/${componentSnapshot.name}\n" +
-            "export COMPONENT_SCRIPTS_DIR=${props.app_binary_dir}/${componentSnapshot.name}/scripts\n" +
-            "export COMPONENT_LOCAL_DATA_DIR=${props.app_binary_dir}/${componentSnapshot.name}/local-data\n" +
-            "export APP_LOG_DIR=${props.app_log_dir}\n"
+    def exportedValues = variables.collect { key, value ->
+        "export ${key}=${value}\n"
+    }.join()
+
+    return [exportedValues, variables]
+}
+
+def sshWrapper(targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder, closure){
+    withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-machine-deployment', 
+            keyFileVariable: 'SSH_KEY',
+            usernameVariable: 'SSH_USERNAME',
+            passphraseVariable: 'SSH_KEY_PASSPHRASE')]) {
+            
+            def remote = [:]
+            remote.name = hostYaml.hostname
+            remote.host = hostYaml.host
+            remote.allowAnyHosts = true
+            remote.user = SSH_USERNAME
+            remote.identityFile = SSH_KEY
+            remote.passphrase = SSH_KEY_PASSPHRASE
+
+            if(closure){
+                closure(remote)
+            }
+            
+        }
+}
+
+def downloadDeployScript( closure) {
+    downloadComponent('deploy', closure)
 }
 
 def downloadComponent( componentName, closure) {
     prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder ->
         echo "Download Component '${targetComponentName}'(version=${componentSnapshot.version}) on Host '${hostYaml.hostname}'"
-        if(closure){
-            closure()
+        
+        sh "curl -o ${componentSnapshot.name}.zip ${componentSnapshot.artifact_path}"
+
+        def (exportedValues, variables) = exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, mergedPropsYaml) + '\n'
+        sshWrapper(targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder){ remote ->
+            // SSH into the remote server and execute the bash script
+            def remoteCommand = ''
+            def destination = ''
+            if(componentName == 'deploy'){
+                destination = variables.DOWNLOAD_COMPONENT_BINARY_DIR
+            } else{
+                destination = variables.DOWNLOAD_DEPLOY_DIR
+            }
+            def remoteCommand = exportedValues +
+                "sudo -u ${variables.APP_SERVICE_ACCOUNT} mkdir -p ${destination}/raw "
+                "sudo -u ${variables.APP_SERVICE_ACCOUNT} rm -rf ${destination} "
+
+            def result = sshCommand remote: remote, command: remoteCommand
+            
+            sshPut remote: remote, from: "${componentSnapshot.name}.zip", into: "${destination}/raw/."
+            
+            sshCommand remote: remote, command: 
+            "cd ${destination}\n" +
+            "file=raw/${componentSnapshot.name}.zip\n" + 
+            '''
+            if [[ $(file -b --mime-type "$file") == application/gzip ]]; then
+                tar -xzf "$file" -C .
+            elif [[ $(file -b --mime-type "$file") == application/x-tar ]]; then
+                tar -xf "$file" -C .
+            elif [[ $(file -b --mime-type "$file") == application/zip ]]; then
+                unzip "$file" -d .
+            else
+                echo "Unknown file format: $file"
+            fi
+            '''
+
+            if(closure){
+                closure(remote, variables, targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder)
+            }
         }
     }
 }
@@ -227,21 +295,10 @@ def installComponent( componentName, closure) {
         writeYaml(file: yamlFilename, data: mergedPropsYaml)
         archiveArtifacts artifacts: yamlFilename
 
-        def exportedValues = exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, mergedPropsYaml) + '\n'
+        def (exportedValues, variables) = exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, mergedPropsYaml) + '\n'
         //call liveness check
         //call install.sh
-        withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-machine-deployment', 
-            keyFileVariable: 'SSH_KEY',
-            usernameVariable: 'SSH_USERNAME',
-            passphraseVariable: 'SSH_KEY_PASSPHRASE')]) {
-            
-            def remote = [:]
-            remote.name = hostYaml.hostname
-            remote.host = hostYaml.host
-            remote.allowAnyHosts = true
-            remote.user = SSH_USERNAME
-            remote.identityFile = SSH_KEY
-            remote.passphrase = SSH_KEY_PASSPHRASE
+       sshWrapper(targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder){ remote ->
 
             // SSH into the remote server and execute the bash script
             def remoteCommand = exportedValues + '''
@@ -254,37 +311,29 @@ if [ -f "$COMPONENT_SCRIPTS_DIR/liveness-check.sh" ]; then
   # Check if the exit status is 0
   if [ $exit_status -eq 0 ]; then
     echo "Script executed successfully."
+    exit 1
   else
     echo "Script execution failed with exit status $exit_status."
-    exit 1
   fi
 else
   echo "Script file not found."
 fi
 
-bash -x "$DOWNLOAD_DEPLOY_DIR/install.sh"
+bash -x "$DOWNLOAD_DEPLOY_DIR/scripts/install.sh"
+bash -x "$DOWNLOAD_DEPLOY_DIR/scripts/enable-linux-services.sh"
             '''
 
             def result = sshCommand remote: remote, command: remoteCommand
             echo "result: " + result
 
             if(closure){
-                def commandExecutor = { cmd, outputToFilename ->
-
-                    def sshResultExecutorResult = sshCommand remote: remote, command: exportedValues + cmd
-                    // Check the exit status of the SSH command
-                    def outFilename = "output/${hostYaml.hostname}-${hostYaml.host}/${componentSnapshot.name}/$outputToFilename"
-                    writeFile file: outFilename, text: sshResultExecutorResult.output
-                    archiveArtifacts artifacts: outFilename
-                }
                 
-                closure(commandExecutor)
+                closure(remote, variables, targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder)
 
             }
             
         }
 
-        
 
     }
 }
@@ -354,7 +403,7 @@ pipeline {
             parallel {
                 stage('deploy') {
                     steps {
-                        downloadComponent("deploy") {
+                        downloadDeployScript {
                         }
                     }
                 }
@@ -393,10 +442,12 @@ pipeline {
                         }
                         stage('install') {
                             steps {
-                                installComponent("web1") { cmd ->
+                                installComponent("web1") { remote, variables, targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder ->
                                     echo "completed install web1"
                                     script {
-                                        cmd('cat $COMPONENT_BINARY_DIR/config/application.yaml', "application.yaml")
+                                        def outFilename = "output/${hostYaml.hostname}-${hostYaml.host}/${componentSnapshot.name}/application.yaml"
+                                        sshGet remote: remote, from: "${variables.COMPONENT_BINARY_DIR}/config/application.yaml", into: outFilename, override: true
+                                        archiveArtifacts artifacts: outFilename
                                     }
                                 }
                             }
