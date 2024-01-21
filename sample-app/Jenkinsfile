@@ -231,7 +231,7 @@ def installComponent( componentName, closure) {
         //call liveness check
         //call install.sh
 
-        withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-agent-for-vm-deployment', 
+        withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-machine-deployment', 
             keyFileVariable: 'SSH_KEY',
             usernameVariable: 'SSH_USERNAME')]) {
             // SSH into the remote server and execute the bash script
