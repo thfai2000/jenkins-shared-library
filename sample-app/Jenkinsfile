@@ -265,6 +265,9 @@ fi
 bash -xeuo "$DOWNLOAD_DEPLOY_DIR/install.sh"'
             '''
 
+            def result = sshCommand remote: remote, command: remoteCommand
+            echo "result: " + result
+
             if(closure){
                 def commandExecutor = { cmd, outputToFilename ->
 
