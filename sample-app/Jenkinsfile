@@ -239,7 +239,7 @@ def installComponent( componentName, closure) {
             def remoteCommand = exportedValues + '''
                 bash $COMPONENT_SCRIPTS_DIR/liveness-check.sh
             '''
-            def sshCommand = "ssh -o StrictHostKeyChecking=no -i $SSH_KEY '$SSH_USERNAME@${hostYaml.host}' '$remoteCommand'"
+            def sshCommand = "ssh -o StrictHostKeyChecking=no -i \$SSH_KEY '\$SSH_USERNAME@${hostYaml.host}' '$remoteCommand'"
             def sshResult = sh script: sshCommand, returnStatus: true
             def exitCode = sshResult
              // Check the exit status of the SSH command
@@ -252,7 +252,7 @@ def installComponent( componentName, closure) {
             remoteCommand = exportedValues + '''
                 bash $DOWNLOAD_DEPLOY_DIR/install.sh
             '''
-            sshCommand = "ssh -o StrictHostKeyChecking=no -i $SSH_KEY '$SSH_USERNAME@${hostYaml.host}' '$remoteCommand'"
+            sshCommand = "ssh -o StrictHostKeyChecking=no -i \$SSH_KEY '\$SSH_USERNAME@${hostYaml.host}' '$remoteCommand'"
             sshResult = sh script: sshCommand, returnStatus: true
             exitCode = sshResult
              // Check the exit status of the SSH command
@@ -265,7 +265,7 @@ def installComponent( componentName, closure) {
             if(closure){
                 def commandExecutor = { cmd, outputToFilename ->
 
-                    def sshResultExecutor = "ssh -o StrictHostKeyChecking=no -i $SSH_KEY '$SSH_USERNAME@${hostYaml.host}' '$exportedValues $cmd'"
+                    def sshResultExecutor = "ssh -o StrictHostKeyChecking=no -i \$SSH_KEY '\$SSH_USERNAME@${hostYaml.host}' '$exportedValues $cmd'"
                     def sshResultExecutorStdout = sh script: sshCommand, returnStdout: true
                     // Check the exit status of the SSH command
                     def outFilename = "output/${hostYaml.hostname}/${componentSnapshot.name}/$outputToFilename"
