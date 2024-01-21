@@ -210,7 +210,7 @@ def exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, props) {
         "export ${key}=${value}\n"
     }.join()
 
-    return [exportedValues, variables]
+    return [exportedValues: exportedValues, variables: variables]
 }
 
 def sshWrapper(targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder, closure){
@@ -244,7 +244,10 @@ def downloadComponent( componentName, closure) {
         def mergedPropsYaml = preparePropYaml(hostYaml, "${targetFolder}/groups", targetComponentName)
         sh "curl -o ${componentSnapshot.name}.zip ${componentSnapshot.artifact_path}"
 
-        def (exportedValues, variables) = exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, mergedPropsYaml) + '\n'
+        def platformEnv = exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, mergedPropsYaml) 
+        def exportedValues = platformEnv.exportedValues + "\n"
+        def variables = platformEnv.variables
+
         sshWrapper(targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder){ remote ->
             // SSH into the remote server and execute the bash script
 
@@ -295,7 +298,9 @@ def installComponent( componentName, closure) {
         writeYaml(file: yamlFilename, data: mergedPropsYaml)
         archiveArtifacts artifacts: yamlFilename
 
-        def (exportedValues, variables) = exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, mergedPropsYaml) + '\n'
+        def platformEnv = exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, mergedPropsYaml) 
+        def exportedValues = platformEnv.exportedValues + "\n"
+        def variables = platformEnv.variables
         //call liveness check
         //call install.sh
        sshWrapper(targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder){ remote ->
