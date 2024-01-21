@@ -253,7 +253,6 @@ def downloadComponent( componentName, closure) {
         echo "Download to ${artifactPath}"
         sh "curl -L -o ${artifactPath} ${componentSnapshot.artifact_path}"
         sh "ls -l ${artifactPath}"
-        sh "pwd"
         sh "realpath ${artifactPath}"
         def platformEnv = exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, mergedPropsYaml) 
         def exportedValues = platformEnv.exportedValues
@@ -271,15 +270,15 @@ def downloadComponent( componentName, closure) {
 
             def result = sshCommand remote: remote, command: """
                 sudo mkdir -p ${destination}
-                sudo mkdir -p ${destination}/raw
                 sudo rm -rf ${destination}/*
+                sudo mkdir -p ${destination}/.artifacts
             """
             
-            sshPut remote: remote, from: "${artifactPath}", into: "${destination}/raw/."
+            sshPut remote: remote, from: "${artifactPath}", into: "${destination}/.artifacts/."
             
             sshCommand remote: remote, command: """
                 cd ${destination}
-                file=${destination}/raw/${artifactFilename}
+                file=${destination}/.artifacts/${artifactFilename}
                 
                 if [[ \$(file -b --mime-type "\$file") == application/gzip ]]; then
                     sudo tar -xzf "\$file" -C .
