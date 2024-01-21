@@ -246,6 +246,7 @@ def installComponent( componentName, closure) {
             // SSH into the remote server and execute the bash script
             def remoteCommand = exportedValues + 'bash $COMPONENT_SCRIPTS_DIR/liveness-check.sh'
             def sshResult = sshCommand remote: remote, command: remoteCommand
+            echo "Result: " + sshResult
 
             // Check the exit status of the SSH command
             if (sshResult.status == 0) {
@@ -257,7 +258,7 @@ def installComponent( componentName, closure) {
             remoteCommand = exportedValues + 'bash $DOWNLOAD_DEPLOY_DIR/install.sh'
             
             sshResult = sshCommand remote: remote, command: remoteCommand
-            exitCode = sshResult
+            echo "Result: " + sshResult
              // Check the exit status of the SSH command
             if (sshResult.status == 0) {
                 echo "SSH script executed successfully."
