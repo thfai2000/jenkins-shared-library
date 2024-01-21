@@ -264,11 +264,11 @@ def downloadComponent( componentName, closure) {
             }
 
             def result = sshCommand remote: remote, sudo: true, command: """
-                sudo mkdir -p ${destination}
-                sudo mkdir -p ${destination}/raw
-                sudo rm -rf ${destination}
-                sudo chown ${variables.APP_SERVICE_ACCOUNT}:${variables.APP_SERVICE_ACCOUNT_GROUP} ${destination}
-                sudo chmod 755 ${destination}
+                mkdir -p ${destination}
+                mkdir -p ${destination}/raw
+                rm -rf ${destination}/*
+                chown ${variables.APP_SERVICE_ACCOUNT}:${variables.APP_SERVICE_ACCOUNT_GROUP} ${destination}
+                chmod 755 ${destination}
             """
             
             sshPut remote: remote, from: "${componentSnapshot.name}.zip", into: "${destination}/raw/."
@@ -315,8 +315,8 @@ def installComponent( componentName, closure) {
             // SSH into the remote server and execute the bash script
 
             def result = sshCommand remote: remote, sudo: true, command: """
-                sudo mkdir -p ${variables.COMPONENT_BINARY_DIR}
-                sudo mkdir -p ${variables.COMPONENT_SCRIPTS_DIR}
+                mkdir -p ${variables.COMPONENT_BINARY_DIR}
+                mkdir -p ${variables.COMPONENT_SCRIPTS_DIR}
             """
 
             result = sshCommand remote: remote, sudo: true, command: """
