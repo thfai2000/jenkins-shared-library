@@ -272,6 +272,7 @@ def downloadComponent( componentName, closure) {
                 sudo mkdir -p ${destination}
                 sudo rm -rf ${destination}/*
                 sudo mkdir -p ${destination}/.artifacts
+                sudo chmod -R 777 ${destination}/.artifacts
             """
             
             sshPut remote: remote, from: "${artifactPath}", into: "${destination}/.artifacts/."
