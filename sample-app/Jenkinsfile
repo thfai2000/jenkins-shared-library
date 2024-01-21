@@ -253,6 +253,7 @@ def downloadComponent( componentName, closure) {
         echo "Download to ${artifactPath}"
         sh "curl -o ${artifactPath} ${componentSnapshot.artifact_path}"
         sh "ls -l ${artifactPath}"
+        sh "pwd"
         def platformEnv = exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, mergedPropsYaml) 
         def exportedValues = platformEnv.exportedValues
         def variables = platformEnv.variables
