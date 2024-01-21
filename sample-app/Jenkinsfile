@@ -268,7 +268,7 @@ def downloadComponent( componentName, closure) {
             "sudo mkdir -p ${destination}/raw " +
             "sudo rm -rf ${destination} " +
             "sudo chown ${variables.APP_SERVICE_ACCOUNT}:${variables.APP_SERVICE_ACCOUNT_GROUP} ${destination}" +
-            "sudo chmod 755 ${destination}" +
+            "sudo chmod 755 ${destination}"
             
             sshPut remote: remote, from: "${componentSnapshot.name}.zip", into: "${destination}/raw/."
             
