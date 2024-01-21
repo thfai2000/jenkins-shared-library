@@ -241,7 +241,7 @@ def downloadDeployScript( closure) {
 def downloadComponent( componentName, closure) {
     prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder ->
         echo "Download Component '${targetComponentName}'(version=${componentSnapshot.version}) on Host '${hostYaml.hostname}'"
-        
+        def mergedPropsYaml = preparePropYaml(hostYaml, "${targetFolder}/groups", targetComponentName)
         sh "curl -o ${componentSnapshot.name}.zip ${componentSnapshot.artifact_path}"
 
         def (exportedValues, variables) = exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, mergedPropsYaml) + '\n'
