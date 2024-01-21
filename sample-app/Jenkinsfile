@@ -208,10 +208,10 @@ def exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, props) {
         'COMPONENT_LOCAL_DATA_DIR': "${props.app_binary_dir}/${componentSnapshot.name}/local-data",
         'APP_LOG_DIR': props.app_log_dir
     ]
-
+    echo "Environment variables - step1"
     def exportedValues = variables.collect { key, value ->
-        "export ${key}=${value}\n"
-    }.join()
+        "export ${key}=${value}"
+    }.join('\n')
 
     echo "Environment variables - prepared"
 
