@@ -267,8 +267,6 @@ def downloadComponent( componentName, closure) {
                 sudo mkdir -p ${destination}
                 sudo mkdir -p ${destination}/raw
                 sudo rm -rf ${destination}/*
-                sudo chown ${variables.APP_SERVICE_ACCOUNT}:${variables.APP_SERVICE_ACCOUNT_GROUP} ${destination}
-                sudo chmod 755 ${destination}
             """
             
             sshPut remote: remote, from: "${componentSnapshot.name}.zip", into: "${destination}/raw/."
@@ -286,6 +284,8 @@ def downloadComponent( componentName, closure) {
                 else
                     echo "Unknown file format: \$file"
                 fi
+                sudo chown -R ${variables.APP_SERVICE_ACCOUNT}:${variables.APP_SERVICE_ACCOUNT_GROUP} ${destination}
+                sudo chmod -R 755 ${destination}
             """
 
             if(closure){
