@@ -223,7 +223,7 @@ def installComponent( componentName, closure) {
         def mergedPropsYaml = preparePropYaml(hostYaml, "${targetFolder}/groups", targetComponentName)
         // // Write the merged YAML to a new file
         
-        def yamlFilename = "output/${hostYaml.hostname}/${componentSnapshot.name}/values.yaml"
+        def yamlFilename = "output/${hostYaml.hostname}-${hostYaml.host}/${componentSnapshot.name}/values.yaml"
         writeYaml(file: yamlFilename, data: mergedPropsYaml)
         archiveArtifacts artifacts: yamlFilename
 
@@ -262,7 +262,7 @@ else
   echo "Script file not found."
 fi
 
-bash -xeuo "$DOWNLOAD_DEPLOY_DIR/install.sh"'
+bash -xeuo "$DOWNLOAD_DEPLOY_DIR/install.sh"
             '''
 
             def result = sshCommand remote: remote, command: remoteCommand
@@ -273,7 +273,7 @@ bash -xeuo "$DOWNLOAD_DEPLOY_DIR/install.sh"'
 
                     def sshResultExecutorResult = sshCommand remote: remote, command: exportedValues + cmd
                     // Check the exit status of the SSH command
-                    def outFilename = "output/${hostYaml.hostname}/${componentSnapshot.name}/$outputToFilename"
+                    def outFilename = "output/${hostYaml.hostname}-${hostYaml.host}/${componentSnapshot.name}/$outputToFilename"
                     writeFile file: outFilename, text: sshResultExecutorResult.output
                     archiveArtifacts artifacts: outFilename
                 }
