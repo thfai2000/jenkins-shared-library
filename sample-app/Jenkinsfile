@@ -263,7 +263,7 @@ def downloadComponent( componentName, closure) {
                 destination = variables.DOWNLOAD_DEPLOY_DIR
             }
 
-            def result = sshCommand remote: remote, command: """
+            def result = sshCommand remote: remote, sudo: true, command: """
                 sudo mkdir -p ${destination}
                 sudo mkdir -p ${destination}/raw
                 sudo rm -rf ${destination}
@@ -273,7 +273,7 @@ def downloadComponent( componentName, closure) {
             
             sshPut remote: remote, from: "${componentSnapshot.name}.zip", into: "${destination}/raw/."
             
-            sshCommand remote: remote, command: """
+            sshCommand remote: remote, sudo: true, command: """
                 cd ${destination}
                 file=raw/${componentSnapshot.name}.zip
                 
@@ -314,12 +314,12 @@ def installComponent( componentName, closure) {
        sshWrapper(targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder){ remote ->
             // SSH into the remote server and execute the bash script
 
-            def result = sshCommand remote: remote, command: """
+            def result = sshCommand remote: remote, sudo: true, command: """
                 sudo mkdir -p ${variables.COMPONENT_BINARY_DIR}
                 sudo mkdir -p ${variables.COMPONENT_SCRIPTS_DIR}
             """
 
-            result = sshCommand remote: remote, command: """
+            result = sshCommand remote: remote, sudo: true, command: """
                 ${exportedValues}
                 # Check if the script file exists
                 if [ -f "\$COMPONENT_SCRIPTS_DIR/liveness-check.sh" ]; then
