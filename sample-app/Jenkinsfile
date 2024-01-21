@@ -274,7 +274,7 @@ def downloadComponent( componentName, closure) {
                 sudo rm -rf ${destination}/*
             """
             
-            sshPut remote: remote, from: "${artifactPath}", into: "${destination}/raw/${artifactFilename}"
+            sshPut remote: remote, from: "${artifactPath}", into: "${destination}/raw/."
             
             sshCommand remote: remote, command: """
                 cd ${destination}
