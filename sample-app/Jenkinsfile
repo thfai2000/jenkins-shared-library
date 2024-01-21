@@ -217,7 +217,7 @@ def downloadComponent( componentName, closure) {
 }
 
 def installComponent( componentName, closure) {
-    prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder ->
+    prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder, remoteHost ->
 
         echo "Install Component '${targetComponentName}'(version=${componentSnapshot.version}) on Host '${hostYaml.hostname}'"
         def mergedPropsYaml = preparePropYaml(hostYaml, "${targetFolder}/groups", targetComponentName)
@@ -230,33 +230,36 @@ def installComponent( componentName, closure) {
         def exportedValues = exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, mergedPropsYaml) + '\n'
         //call liveness check
         //call install.sh
-
         withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-machine-deployment', 
             keyFileVariable: 'SSH_KEY',
-            usernameVariable: 'SSH_USERNAME')]) {
-            // SSH into the remote server and execute the bash script
+            usernameVariable: 'SSH_USERNAME',
+            passphraseVariable: 'SSH_KEY_PASSPHRASE')]) {
+            
+            def remote = [:]
+            remote.name = hostYaml.hostname
+            remote.host = hostYaml.host
+            remote.allowAnyHosts = true
+            remote.user = SSH_USERNAME
+            remote.identityFile = SSH_KEY
+            remote.passphrase = SSH_KEY_PASSPHRASE
 
-            def remoteCommand = exportedValues + '''
-                bash $COMPONENT_SCRIPTS_DIR/liveness-check.sh
-            '''
-            def sshCommand = "ssh -o StrictHostKeyChecking=no -i \$SSH_KEY '\$SSH_USERNAME@${hostYaml.host}' '$remoteCommand'"
-            def sshResult = sh script: sshCommand, returnStatus: true
-            def exitCode = sshResult
-             // Check the exit status of the SSH command
-            if (exitCode == 0) {
+            // SSH into the remote server and execute the bash script
+            def remoteCommand = exportedValues + 'bash $COMPONENT_SCRIPTS_DIR/liveness-check.sh'
+            def sshResult = sshCommand remote: remote, command: remoteCommand
+
+            // Check the exit status of the SSH command
+            if (sshResult.status == 0) {
                 error "Error executing SSH script. Job will be stopped."
             } else {
                 echo "Checked successfully."
             }
 
-            remoteCommand = exportedValues + '''
-                bash $DOWNLOAD_DEPLOY_DIR/install.sh
-            '''
-            sshCommand = "ssh -o StrictHostKeyChecking=no -i \$SSH_KEY '\$SSH_USERNAME@${hostYaml.host}' '$remoteCommand'"
-            sshResult = sh script: sshCommand, returnStatus: true
+            remoteCommand = exportedValues + 'bash $DOWNLOAD_DEPLOY_DIR/install.sh'
+            
+            sshResult = sshCommand remote: remote, command: remoteCommand
             exitCode = sshResult
              // Check the exit status of the SSH command
-            if (exitCode == 0) {
+            if (sshResult.status == 0) {
                 echo "SSH script executed successfully."
             } else {
                 error "Error executing SSH script. Job will be stopped."
@@ -265,13 +268,11 @@ def installComponent( componentName, closure) {
             if(closure){
                 def commandExecutor = { cmd, outputToFilename ->
 
-                    def sshResultExecutor = "ssh -o StrictHostKeyChecking=no -i \$SSH_KEY '\$SSH_USERNAME@${hostYaml.host}' '$exportedValues $cmd'"
-                    def sshResultExecutorStdout = sh script: sshCommand, returnStdout: true
+                    def sshResultExecutorResult = sshCommand remote: remote, command: exportedValues + cmd
                     // Check the exit status of the SSH command
                     def outFilename = "output/${hostYaml.hostname}/${componentSnapshot.name}/$outputToFilename"
-                    writeFile file: outFilename, text: sshResultExecutorStdout
+                    writeFile file: outFilename, text: sshResultExecutorResult.output
                     archiveArtifacts artifacts: outFilename
-                
                 }
                 
                 closure(commandExecutor)
