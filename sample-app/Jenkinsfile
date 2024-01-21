@@ -262,11 +262,13 @@ def downloadComponent( componentName, closure) {
             } else{
                 destination = variables.DOWNLOAD_DEPLOY_DIR
             }
-            def remoteCommand = exportedValues +
-                "sudo -u ${variables.APP_SERVICE_ACCOUNT} mkdir -p ${destination}/raw "
-                "sudo -u ${variables.APP_SERVICE_ACCOUNT} rm -rf ${destination} "
 
-            def result = sshCommand remote: remote, command: remoteCommand
+            def result = sshCommand remote: remote, command: 
+            "sudo mkdir -p ${destination} " +
+            "sudo mkdir -p ${destination}/raw " +
+            "sudo rm -rf ${destination} " +
+            "sudo chown ${variables.APP_SERVICE_ACCOUNT}:${variables.APP_SERVICE_ACCOUNT_GROUP} ${destination}" +
+            "sudo chmod 755 ${destination}" +
             
             sshPut remote: remote, from: "${componentSnapshot.name}.zip", into: "${destination}/raw/."
             
@@ -309,9 +311,14 @@ def installComponent( componentName, closure) {
         //call liveness check
         //call install.sh
        sshWrapper(targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder){ remote ->
-
             // SSH into the remote server and execute the bash script
-            def remoteCommand = exportedValues + '''
+
+            def result = sshCommand remote: remote, command: 
+            "sudo mkdir -p ${variables.COMPONENT_BINARY_DIR} " +
+            "sudo mkdir -p ${variables.COMPONENT_SCRIPTS_DIR} "
+
+            
+            result = sshCommand remote: remote, command: exportedValues + '''
 # Check if the script file exists
 if [ -f "$COMPONENT_SCRIPTS_DIR/liveness-check.sh" ]; then
   # Execute the script and capture the exit status
@@ -332,9 +339,6 @@ fi
 bash -x "$DOWNLOAD_DEPLOY_DIR/scripts/install.sh"
 bash -x "$DOWNLOAD_DEPLOY_DIR/scripts/enable-linux-services.sh"
             '''
-
-            def result = sshCommand remote: remote, command: remoteCommand
-            echo "result: " + result
 
             if(closure){
                 
