@@ -185,7 +185,7 @@ def prepareComponent(targetComponentName, closure) {
 
 def exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, props){
 
-    return  "export WHICH_ENV=${props.which_env}\n" +
+    return  "export WHICH_ENV=${env.which_env}\n" +
             "export WHICH_SITE=${props.which_site}\n" +
             "export APPLICATION_NAME=${props.application_name}\n" +
             "export HOSTNAME=${hostYaml.hostname}\n" +
@@ -241,7 +241,7 @@ def installComponent( componentName, closure) {
             '''
             def sshCommand = "ssh -o StrictHostKeyChecking=no -i $SSH_KEY '$SSH_USERNAME@${hostYaml.host}' '$remoteCommand'"
             def sshResult = sh script: sshCommand, returnStatus: true
-            def exitCode = sshResult.returnStatus
+            def exitCode = sshResult
              // Check the exit status of the SSH command
             if (exitCode == 0) {
                 error "Error executing SSH script. Job will be stopped."
@@ -254,7 +254,7 @@ def installComponent( componentName, closure) {
             '''
             sshCommand = "ssh -o StrictHostKeyChecking=no -i $SSH_KEY '$SSH_USERNAME@${hostYaml.host}' '$remoteCommand'"
             sshResult = sh script: sshCommand, returnStatus: true
-            exitCode = sshResult.returnStatus
+            exitCode = sshResult
              // Check the exit status of the SSH command
             if (exitCode == 0) {
                 echo "SSH script executed successfully."
