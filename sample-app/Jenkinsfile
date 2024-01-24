@@ -251,7 +251,8 @@ def downloadComponent( componentName, closure) {
         def artifactFilename = "${componentSnapshot.name}.zip"
         def artifactPath = "${targetFolder}/${artifactFilename}"
         echo "Download to ${artifactPath}"
-        sh "wget -O ${artifactPath} ${componentSnapshot.artifact_path}"
+        httpRequest(url: componentSnapshot.artifact_path, outputFile: artifactPath)
+
         sh "ls -l ${artifactPath}"
         sh "realpath ${artifactPath}"
         def platformEnv = exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, mergedPropsYaml) 
