@@ -9,6 +9,26 @@ Map merge(Map... maps) {
     result
 }
 
+def redirectFollowingDownload(Map params) {
+
+    def url = params.url
+    def filename = params.filename
+    while( url ) {
+    new URL( url ).openConnection().with { conn ->
+        conn.instanceFollowRedirects = false
+        url = conn.getHeaderField( "Location" )      
+        if( !url ) {
+        new File( filename ).withOutputStream { out ->
+            conn.inputStream.with { inp ->
+            out << inp
+            inp.close()
+            }
+        }
+        }
+    }
+    }
+}
+
 def findTokenValue(String tokenName, Map tokens) {
     def parts = tokenName.split("\\.")
     def value = tokens
@@ -251,7 +271,8 @@ def downloadComponent( componentName, closure) {
         def artifactFilename = "${componentSnapshot.name}.zip"
         def artifactPath = "${targetFolder}/${artifactFilename}"
         echo "Download to ${artifactPath}"
-        httpRequest(url: componentSnapshot.artifact_path, outputFile: artifactPath)
+        redirectFollowingDownload(url: componentSnapshot.artifact_path, filename: artifactPath)
+        // httpRequest(url: componentSnapshot.artifact_path, outputFile: artifactPath)
 
         sh "ls -l ${artifactPath}"
         sh "realpath ${artifactPath}"
