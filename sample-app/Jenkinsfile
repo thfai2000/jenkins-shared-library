@@ -1,83 +1,3 @@
-Map merge(Map... maps) {
-    Map result = [:]
-    maps.each { map ->
-        map.each { k, v ->
-            result[k] = result[k] instanceof Map ? merge(result[k], v) : v
-        }
-    }
-
-    result
-}
-
-def redirectFollowingDownload(Map params) {
-
-    def url = params.url
-    def filename = params.filename
-    while( url ) {
-    new URL( url ).openConnection().with { conn ->
-        conn.instanceFollowRedirects = false
-        url = conn.getHeaderField( "Location" )      
-        if( !url ) {
-        new File( filename ).withOutputStream { out ->
-            conn.inputStream.with { inp ->
-            out << inp
-            inp.close()
-            }
-        }
-        }
-    }
-    }
-}
-
-def findTokenValue(String tokenName, Map tokens) {
-    def parts = tokenName.split("\\.")
-    def value = tokens
-    parts.each { part ->
-        value = value[part]
-        if (value == null) {
-            return null
-        }
-    }
-    value
-}
-
-def traverseAndReplaceValues(Map map, Map tokens) {
-    map.each { key, value ->
-        if (value instanceof String) {
-            def matcher = value =~ /\$\{p:([\w\.]+)\}/
-            if (matcher) {
-                matcher.each { match ->
-                    def tokenName = match[1]
-                    def tokenValue = findTokenValue(tokenName, tokens)
-                    if (tokenValue instanceof String) {
-                        value = value.replace("\${p:${tokenName}}", tokenValue)
-                    }
-                }
-            }
-        } else if (value instanceof Map) {
-            value = traverseAndReplaceValues(value, tokens)
-        } else if (value instanceof List) {
-            value.eachWithIndex { item, index ->
-                if (item instanceof Map) {
-                    value[index] = traverseAndReplaceValues(item, tokens)
-                } else if (item instanceof String) {
-                    def matcher = item =~ /\$\{p:([\w\.]+)\}/
-                    if (matcher) {
-                        matcher.each { match ->
-                            def tokenName = match[1]
-                            def tokenValue = findTokenValue(tokenName, tokens)
-                            if (tokenValue instanceof String) {
-                                value[index] = item.replace("\${p:${tokenName}}", tokenValue)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        map[key] = value
-    }
-    map
-}
 
 
 def getSnapshotUrl(version) {
@@ -143,65 +63,6 @@ def selectSnapshotAndEnv(closure){
     echo "selected_version_snapshot=${env.selected_version_snapshot}"
 }
 
-def preparePropYaml(hostYaml, groups_dir_path, targetComponentName) {
-    // Read the Host YAML file
-    def mergedYaml = [:] // Initialize the merged YAML object
-
-    // Iterate over the host groups in the same order as mentioned in the Host YAML
-    for (group in hostYaml.host_groups) {
-        // Read the corresponding Group YAML file
-        def groupYaml = readYaml(file: "${groups_dir_path}/${group}.yaml")
-
-        // Merge the 'props' section of the Host YAML with the Group YAML
-        mergedYaml = merge(mergedYaml, groupYaml)
-    }
-
-    // Merge the 'props' section of the Host YAML
-    mergedYaml = merge(mergedYaml, hostYaml.props)
-
-    for (component in hostYaml.host_components) {
-        if( component.name == targetComponentName){
-            // Merge the 'props' section of the specific 'host_components' YAML with the merged YAML
-            mergedYaml = merge(mergedYaml, component.props)
-        }
-    }
-
-
-    // Token replace in the Value YAML File
-    mergedYaml = traverseAndReplaceValues(mergedYaml, mergedYaml)
-
-    return mergedYaml
-}
-
-def prepareComponent(targetComponentName, closure) {
-    dir('env-config') {
-        checkoutEnvConfig()
-        def componentSnapshots = readYaml(text: env.snapshotContent)
-        // def targetFolder = sh(script: 'dirname $0', returnStdout: true).trim() + "/${env.which_env}"
-        def targetFolder = env.which_env
-        sh(script: "ls ${targetFolder}")
-        def hostYamlFiles = findFiles(glob: "${targetFolder}/hosts/*.yaml")
-
-        for (def componentSnapshot in componentSnapshots) {
-            
-            if(targetComponentName == componentSnapshot.name){
-
-                for (def hostYamlFile in hostYamlFiles) {
-                    def hostYaml = readYaml(file: hostYamlFile.path)
-                    def hostComponentsYaml = hostYaml.host_components
-                    
-                    for (def componentYaml in hostComponentsYaml) {
-                        if (componentYaml.name == targetComponentName) {
-                            if(closure){
-                                closure(targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 
 def exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, props) {
 
@@ -238,192 +99,42 @@ def exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, props) {
     return [exportedValues: exportedValues, variables: variables]
 }
 
-def sshWrapper(targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder, closure){
-    withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-machine-deployment', 
-            keyFileVariable: 'SSH_KEY',
-            usernameVariable: 'SSH_USERNAME',
-            passphraseVariable: 'SSH_KEY_PASSPHRASE')]) {
-            
-            def remote = [:]
-            remote.name = hostYaml.hostname
-            remote.host = hostYaml.host
-            remote.allowAnyHosts = true
-            remote.user = SSH_USERNAME
-            remote.identityFile = SSH_KEY
-            remote.passphrase = SSH_KEY_PASSPHRASE
-
-            if(closure){
-                closure(remote)
-            }
-            
-        }
-}
 
 def downloadDeployScript( closure) {
     downloadComponent('deploy', closure)
 }
 
 def downloadComponent( componentName, closure) {
-    prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder ->
-        echo "Download Component '${targetComponentName}'(version=${componentSnapshot.version}) on Host '${hostYaml.hostname}'"
-        def mergedPropsYaml = preparePropYaml(hostYaml, "${targetFolder}/groups", targetComponentName)
-
-        def artifactFilename = "${componentSnapshot.name}.zip"
-        def artifactPath = "${targetFolder}/${artifactFilename}"
-        echo "Download to ${artifactPath}"
-        redirectFollowingDownload(url: componentSnapshot.artifact_path, filename: artifactPath)
-        // httpRequest(url: componentSnapshot.artifact_path, outputFile: artifactPath)
-
-        sh "ls -l ${artifactPath}"
-        sh "realpath ${artifactPath}"
-        def platformEnv = exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, mergedPropsYaml) 
-        def exportedValues = platformEnv.exportedValues
-        def variables = platformEnv.variables
-        def destination = ''
-        if(componentName == 'deploy'){
-            destination = variables.DOWNLOAD_DEPLOY_DIR
-        } else{
-            destination = variables.DOWNLOAD_COMPONENT_BINARY_DIR
-        }
-
-        sshWrapper(targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder){ remote ->
-            // SSH into the remote server and execute the bash script
-
-            def result = sshCommand remote: remote, command: """
-                sudo mkdir -p ${destination}
-                sudo rm -rf ${destination}/*
-                sudo mkdir -p ${destination}/.artifacts
-                sudo chmod -R 777 ${destination}/.artifacts
-            """
-            
-            sshPut remote: remote, from: "${artifactPath}", into: "${destination}/.artifacts/."
-            
-            sshCommand remote: remote, command: """
-                cd ${destination}
-                file=${destination}/.artifacts/${artifactFilename}
-                
-                if [[ \$(file -b --mime-type "\$file") == application/gzip ]]; then
-                    sudo tar -xzf "\$file" -C .
-                elif [[ \$(file -b --mime-type "\$file") == application/x-tar ]]; then
-                    sudo tar -xf "\$file" -C .
-                elif [[ \$(file -b --mime-type "\$file") == application/zip ]]; then
-                    sudo unzip "\$file" -d .
-                else
-                    echo "Unknown or unexpected file format: \$file"
-                    exit 1
-                fi
-                sudo chown -R ${variables.APP_SERVICE_ACCOUNT}:${variables.APP_SERVICE_ACCOUNT_GROUP} ${destination}
-                sudo chmod -R 755 ${destination}
-            """
-
-            if(closure){
-                closure(remote, variables, targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder)
-            }
-        }
+    ansibleAdhoc(
+        inventoryPath: 'inventory/hosts.yml',
+        become: true,
+        become_user: 'root',
+        colorized: true
+    ) {
+        module = 'ping'
+        args = ''
     }
 }
 
 def installComponent( componentName, closure) {
-    prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder, remoteHost ->
-
-        echo "Install Component '${targetComponentName}'(version=${componentSnapshot.version}) on Host '${hostYaml.hostname}'"
-        def mergedPropsYaml = preparePropYaml(hostYaml, "${targetFolder}/groups", targetComponentName)
-        // // Write the merged YAML to a new file
-        
-        def yamlFilename = "output/${hostYaml.hostname}-${hostYaml.host}/${componentSnapshot.name}/values.yaml"
-        writeYaml(file: yamlFilename, data: mergedPropsYaml)
-        archiveArtifacts artifacts: yamlFilename
-
-        def platformEnv = exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, mergedPropsYaml) 
-        def exportedValues = platformEnv.exportedValues
-        def variables = platformEnv.variables
-        //call liveness check
-        //call install.sh
-       sshWrapper(targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder){ remote ->
-            // SSH into the remote server and execute the bash script
-
-            def result = sshCommand remote: remote, command: """
-                sudo mkdir -p ${variables.COMPONENT_BINARY_DIR}
-                sudo mkdir -p ${variables.COMPONENT_SCRIPTS_DIR}
-            """
-
-            result = sshCommand remote: remote, command: """
-                ${exportedValues}
-                # Check if the script file exists
-                if [ -f "\$COMPONENT_SCRIPTS_DIR/liveness-check.sh" ]; then
-                    # Execute the script and capture the exit status
-                    bash -x "\$COMPONENT_SCRIPTS_DIR/liveness-check.sh"
-                    exit_status=\$?
-
-                    # Check if the exit status is 0
-                    if [ \$exit_status -eq 0 ]; then
-                        echo "Script executed successfully."
-                        exit 1
-                    else
-                        echo "Script execution failed with exit status \$exit_status."
-                    fi
-                else
-                    echo "Script file not found."
-                fi
-
-                bash -x "\$DOWNLOAD_DEPLOY_DIR/scripts/install.sh"
-                bash -x "\$DOWNLOAD_DEPLOY_DIR/scripts/enable-linux-services.sh"
-            """
-
-            if(closure){
-                
-                closure(remote, variables, targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder)
-
-            }
-            
-        }
-
-
-    }
 }
 
 def dbPatch( componentName, closure) {
-    prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder ->
+    echo "DB Patch '${targetComponentName}'on Host '${hostYaml.hostname}'"
 
-        echo "DB Patch '${targetComponentName}'on Host '${hostYaml.hostname}'"
-
-        if(closure){
-            closure()
-        }
-    }
 }
 
 def stopComponent( componentName, closure) {
-    prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder ->
-
-        echo "Stop Component '${targetComponentName}'on Host '${hostYaml.hostname}'"
-
-        if(closure){
-            closure()
-        }
-    }
+    echo "Stop Component '${targetComponentName}'on Host '${hostYaml.hostname}'"
+   
 }
 
 def startComponent( componentName, closure) {
-    prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder ->
-
-        echo "Start Component '${targetComponentName}'on Host '${hostYaml.hostname}'"
-
-        if(closure){
-            closure()
-        }
-    }
+    echo "Start Component '${targetComponentName}'on Host '${hostYaml.hostname}'"
 }
 
 def healthCheckComponent( componentName, closure) {
-    prepareComponent(componentName) { targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder ->
-
-        echo "Health Check '${targetComponentName}'on Host '${hostYaml.hostname}'"
-
-        if(closure){
-            closure()
-        }
-    }
+    echo "Health Check '${targetComponentName}'on Host '${hostYaml.hostname}'"
 }
 
 pipeline {
@@ -443,14 +154,16 @@ pipeline {
                 }
             }
         }
-        stage('Download Artifacts') {
+
+        stage('Download Artifacts ') {
             parallel {
                 stage('deploy') {
                     steps {
-                        downloadDeployScript {
+                        downloadDeployScript("app") {
                         }
                     }
                 }
+
                 stage('web1') {
                     steps {
                         downloadComponent("web1") {
@@ -486,14 +199,8 @@ pipeline {
                         }
                         stage('install') {
                             steps {
-                                installComponent("web1") { remote, variables, targetComponentName, componentSnapshot, hostYaml, componentYaml, targetFolder ->
+                                installComponent("web1") {
                                     echo "completed install web1"
-                                    script {
-                                        def outFilename = "output/${hostYaml.hostname}-${hostYaml.host}/${componentSnapshot.name}/application.yaml"
-                                        sshGet remote: remote, from: "${variables.COMPONENT_BINARY_DIR}/config/application.yaml", into: outFilename, override: true
-                                        archiveArtifacts artifacts: outFilename
-                                    }
-                                }
                             }
                         }
                     }
@@ -600,38 +307,4 @@ pipeline {
     }
 }
 
-
-
-
-// def processComponentOnMachine(componentName, componentSnapshot, hostYaml, componentYaml) {
-
-//     return {
-//         echo "Host: ${hostYaml.hostname}"                        
-//         echo "processComponentOnMachine: ${componentName}"
-//         echo "download version ${componentSnapshot.version}"
-//     }
-// }
-
-
-
-// def getFolderNames() {
-    
-//     // def currentDir = sh(script: 'pwd', returnStdout: true).trim()
-
-//     def folderList = sh(script: "ls -d */ | xargs -n 1 basename", returnStdout: true).trim().split('\n')
-//     return folderList
-    
-// }
-
-// def getSnapshotVersions() {
-//     def treeApiUrl = "https://api.github.com/repos/$VERSION_SNAPSHOT_REPO_NAME/contents/$VERSION_SNAPSHOT_FOLDER_NAME?ref=$GIT_BRANCH"
-    
-//     def response = httpRequest(url: treeApiUrl, httpMode: 'GET', authentication: 'your_credentials')
-//     def fileNames = []
-//     if (response.status == 200) {
-//         def json = readJSON(text: response.content)
-//         fileNames = json.findAll { it.type == 'file' }.collect { it.name }
-//     }
-//     return fileNames
-// }
 
