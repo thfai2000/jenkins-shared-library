@@ -106,10 +106,10 @@ def downloadDeployScript( closure) {
 
 def downloadComponent( componentName) {
     ansibleAdhoc(
-        inventoryPath: '/opt/ansible/inventory/dit2.yaml',
+        inventory: '/opt/ansible/inventory/dit2.yaml',
         colorized: true,
-        privateKey: "/home/jenkins/.ssh/id_rsa",
-        pattern: componentName
+        vaultTmpPath: "/home/jenkins/.ssh/id_rsa",
+        hosts: componentName
     ) {
         module = 'command'
         args = "echo 'Download for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
@@ -118,10 +118,10 @@ def downloadComponent( componentName) {
 
 def installComponent( componentName) {
     ansibleAdhoc(
-        inventoryPath: '/opt/ansible/inventory/dit2.yaml',
+        inventory: '/opt/ansible/inventory/dit2.yaml',
         colorized: true,
-        privateKey: "/home/jenkins/.ssh/id_rsa",
-        pattern: componentName
+        vaultTmpPath: "/home/jenkins/.ssh/id_rsa",
+        hosts: componentName
     ) {
         module = 'command'
         args = "echo 'Install for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
@@ -130,10 +130,10 @@ def installComponent( componentName) {
 
 def dbPatch( componentName) {
     ansibleAdhoc(
-        inventoryPath: '/opt/ansible/inventory/dit2.yaml',
+        inventory: '/opt/ansible/inventory/dit2.yaml',
         colorized: true,
-        privateKey: "/home/jenkins/.ssh/id_rsa",
-        pattern: componentName
+        vaultTmpPath: "/home/jenkins/.ssh/id_rsa",
+        hosts: componentName
     ) {
         module = 'command'
         args = "echo 'dbPatch for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
@@ -143,10 +143,10 @@ def dbPatch( componentName) {
 
 def stopComponent( componentName) {
     ansibleAdhoc(
-        inventoryPath: '/opt/ansible/inventory/dit2.yaml',
+        inventory: '/opt/ansible/inventory/dit2.yaml',
         colorized: true,
-        privateKey: "/home/jenkins/.ssh/id_rsa",
-        pattern: componentName
+        vaultTmpPath: "/home/jenkins/.ssh/id_rsa",
+        hosts: componentName
     ) {
         module = 'command'
         args = "echo 'stopComponent for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
@@ -155,10 +155,10 @@ def stopComponent( componentName) {
 
 def startComponent( componentName) {
     ansibleAdhoc(
-        inventoryPath: '/opt/ansible/inventory/dit2.yaml',
+        inventory: '/opt/ansible/inventory/dit2.yaml',
         colorized: true,
-        privateKey: "/home/jenkins/.ssh/id_rsa",
-        pattern: componentName
+        vaultTmpPath: "/home/jenkins/.ssh/id_rsa",
+        hosts: componentName
     ) {
         module = 'command'
         args = "echo 'startComponent for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
@@ -167,10 +167,10 @@ def startComponent( componentName) {
 
 def healthCheckComponent( componentName) {
     ansibleAdhoc(
-        inventoryPath: '/opt/ansible/inventory/dit2.yaml',
+        inventory: '/opt/ansible/inventory/dit2.yaml',
         colorized: true,
-        privateKey: "/home/jenkins/.ssh/id_rsa",
-        pattern: componentName
+        vaultTmpPath: "/home/jenkins/.ssh/id_rsa",
+        hosts: componentName
     ) {
         module = 'command'
         args = "echo 'healthCheckComponent for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
