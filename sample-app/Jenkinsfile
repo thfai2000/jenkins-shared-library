@@ -178,7 +178,7 @@ def healthCheckComponent( componentName, closure) {
 }
 
 pipeline {
-    agent "ansible"
+    agent { label "ansible" }
 
     environment { 
         VERSION_SNAPSHOT_REPO_NAME = "thfai2000/version_snapshots"
