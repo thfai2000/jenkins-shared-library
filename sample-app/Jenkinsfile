@@ -109,11 +109,10 @@ def downloadComponent( componentName) {
         inventory: '/opt/ansible/inventory/dit2.yaml',
         colorized: true,
         vaultTmpPath: "/home/jenkins/.ssh/id_rsa",
-        hosts: componentName
-    ) {
-        module = 'command'
-        args = "echo 'Download for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
-    }
+        hosts: componentName,
+        module = 'command',
+        moduleArguments = "echo 'downloadComponent for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
+    )
 }
 
 def installComponent( componentName) {
@@ -121,11 +120,10 @@ def installComponent( componentName) {
         inventory: '/opt/ansible/inventory/dit2.yaml',
         colorized: true,
         vaultTmpPath: "/home/jenkins/.ssh/id_rsa",
-        hosts: componentName
-    ) {
-        module = 'command'
-        args = "echo 'Install for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
-    }
+        hosts: componentName,
+        module = 'command',
+        moduleArguments = "echo 'installComponent for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
+    )
 }
 
 def dbPatch( componentName) {
@@ -133,11 +131,10 @@ def dbPatch( componentName) {
         inventory: '/opt/ansible/inventory/dit2.yaml',
         colorized: true,
         vaultTmpPath: "/home/jenkins/.ssh/id_rsa",
-        hosts: componentName
-    ) {
-        module = 'command'
-        args = "echo 'dbPatch for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
-    }
+        hosts: componentName,
+        module = 'command',
+        moduleArguments = "echo 'dbPatch for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
+    )
 
 }
 
@@ -146,11 +143,10 @@ def stopComponent( componentName) {
         inventory: '/opt/ansible/inventory/dit2.yaml',
         colorized: true,
         vaultTmpPath: "/home/jenkins/.ssh/id_rsa",
-        hosts: componentName
-    ) {
-        module = 'command'
-        args = "echo 'stopComponent for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
-    }
+        hosts: componentName,
+        module = 'command',
+        moduleArguments = "echo 'stopComponent for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
+    )
 }
 
 def startComponent( componentName) {
@@ -158,11 +154,10 @@ def startComponent( componentName) {
         inventory: '/opt/ansible/inventory/dit2.yaml',
         colorized: true,
         vaultTmpPath: "/home/jenkins/.ssh/id_rsa",
-        hosts: componentName
-    ) {
-        module = 'command'
-        args = "echo 'startComponent for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
-    }
+        hosts: componentName,
+        module = 'command',
+        moduleArguments = "echo 'startComponent for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
+    )
 }
 
 def healthCheckComponent( componentName) {
@@ -170,11 +165,10 @@ def healthCheckComponent( componentName) {
         inventory: '/opt/ansible/inventory/dit2.yaml',
         colorized: true,
         vaultTmpPath: "/home/jenkins/.ssh/id_rsa",
-        hosts: componentName
-    ) {
-        module = 'command'
-        args = "echo 'healthCheckComponent for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
-    }
+        hosts: componentName,
+        module = 'command',
+        moduleArguments = "echo 'healthCheckComponent for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
+    )
 }
 
 pipeline {
