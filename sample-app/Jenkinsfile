@@ -106,13 +106,14 @@ def downloadDeployScript( closure) {
 
 def downloadComponent( componentName) {
     ansibleAdhoc(
-        inventory: '/opt/ansible/inventory/dit2.yaml',
-        colorized: true,
-        vaultTmpPath: "/home/jenkins/.ssh/id_rsa",
-        hosts: componentName,
-        module = 'command',
-        moduleArguments = "echo 'downloadComponent for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
-    )
+        'command',
+        "echo 'downloadComponent for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
+    ){
+        inventoryPath '/opt/ansible/inventory/dit2.yaml'
+        colorizedOutput true
+        vaultTmpPath "/home/jenkins/.ssh/id_rsa"
+        hostPattern: componentName
+    }
 }
 
 def installComponent( componentName) {
