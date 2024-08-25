@@ -1,0 +1,61 @@
+---
+# https://api.github.com/repos/thfai2000/version_snapshots/contents/sample-app
+- name: Sync Snaphsot Versions
+  hosts: localhost
+  tasks:
+  - name: Curl web endpoint
+    uri:
+      url: "{{ snapshot_endpoint_uri }}"  # Replace with your actual endpoint URL
+      method: GET
+      return_content: yes
+    register: curl_output
+
+  - name: Format JSON content
+    set_fact:
+      json_data: "{{ curl_output.content | from_json }}"
+    
+  - name: Format JSON into text
+    set_fact:
+      formatted_text: "{{ json_data | map(attribute='path') | join('\n') }}"
+
+  # - name: Search for Job Template
+  #   uri:
+  #     url: "https://{{ aap_instance }}/api/v2/job_templates/?search=Download%20Artifact"
+  #     method: GET
+  #     headers:
+  #       Content-Type: "application/json"
+  #       Authorization: "Bearer {{ auth_token }}"
+  #     return_content: yes
+  #   register: job_templates
+
+  # - name: Extract Job Template ID
+  #   set_fact:
+  #     job_template_id: "{{ (job_templates.json.results | selectattr('name', 'equalto', 'Your Template Name') | list)[0].id }}"
+  
+  - name: Create survey
+    uri:
+      url: "{{ tower_api_host }}/api/v2/job_templates/{{ job_template_id }}/survey_spec/"
+      method: POST
+      headers:
+        Content-Type: "application/json"
+        Authorization: "Bearer {{ tower_api_auth_token }}"
+      body_format: json
+      body:
+        name: "survey_name"
+        description: "survey_description"
+        spec:
+          - question_name: "Choose the Version Snapshot"
+            question_description: ""
+            required: true
+            type: "multiplechoice"
+            variable: "version_snapshot"
+            min: 0
+            max: 1024
+            default: ""
+            choices: "{{ formatted_text }}"
+            new_question: true
+    register: survey_creation_result
+
+    
+
+    

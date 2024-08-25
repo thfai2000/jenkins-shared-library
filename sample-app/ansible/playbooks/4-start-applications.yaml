@@ -1,0 +1,12 @@
+---
+- name: Stop applications
+  hosts: "{{ target_hosts }}"
+  remote_user: root
+  tasks:
+  - name: Start services
+    debug:
+      msg: "This is task for checking status of services"
+    ansible.builtin.shell: |
+      {{ component_binary_dir }}/scripts/start.sh
+
+

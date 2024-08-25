@@ -1,0 +1,19 @@
+---
+- name: Download Artifacts
+  hosts: "{{ target_hosts }}"
+  tasks:
+  - name: Gather Project Facts
+    setup:
+      filter: ansible_project_dir
+  - name: Download the Deployment Tools
+    ansible.builtin.debug:
+        msg: 'Logging in as {{ variable_name }}'
+    copy:
+      src: "{{ hostvars['ansible_tower_host']['ansible_project_dir'] }}/tools/linux/gomplate"
+      dest: /path/on/target/machine/
+      mode: "0755"
+  - name: Download Software Component Artifacts
+    get_url:
+      url: "https://github.com/thfai2000/ansible-sample-app/releases/download/{tag}/{artifact}"
+      dest: /path/to/save/artifact
+

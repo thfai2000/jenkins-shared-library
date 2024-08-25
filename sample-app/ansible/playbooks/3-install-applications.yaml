@@ -1,0 +1,12 @@
+---
+- name: Stop applications
+  hosts: "{{ target_hosts }}"
+  tasks:
+  - name: Install services
+    debug:
+      msg: "This is task for checking status of services"
+    ansible.builtin.shell: |
+      {{ app_binary_dir }}/{{ item.name }}/scripts/install.sh
+    loop: "{{ services }}"
+
+

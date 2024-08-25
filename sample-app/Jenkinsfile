@@ -106,39 +106,79 @@ def downloadDeployScript( closure) {
 
 def downloadComponent( componentName, closure) {
     ansibleAdhoc(
-        inventoryPath: 'inventory/hosts.yml',
-        become: true,
-        become_user: 'root',
-        colorized: true
+        inventoryPath: '/opt/ansible/inventory/dit2.yaml',
+        colorized: true,
+        privateKey: "/home/jenkins/.ssh/id_rsa",
+        pattern: componentName
     ) {
-        module = 'ping'
-        args = ''
+        module = 'command'
+        args = "echo 'Download for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
     }
 }
 
 def installComponent( componentName, closure) {
+    ansibleAdhoc(
+        inventoryPath: '/opt/ansible/inventory/dit2.yaml',
+        colorized: true,
+        privateKey: "/home/jenkins/.ssh/id_rsa",
+        pattern: componentName
+    ) {
+        module = 'command'
+        args = "echo 'Install for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
+    }
 }
 
 def dbPatch( componentName, closure) {
-    echo "DB Patch '${targetComponentName}'on Host '${hostYaml.hostname}'"
+    ansibleAdhoc(
+        inventoryPath: '/opt/ansible/inventory/dit2.yaml',
+        colorized: true,
+        privateKey: "/home/jenkins/.ssh/id_rsa",
+        pattern: componentName
+    ) {
+        module = 'command'
+        args = "echo 'dbPatch for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
+    }
 
 }
 
 def stopComponent( componentName, closure) {
-    echo "Stop Component '${targetComponentName}'on Host '${hostYaml.hostname}'"
-   
+    ansibleAdhoc(
+        inventoryPath: '/opt/ansible/inventory/dit2.yaml',
+        colorized: true,
+        privateKey: "/home/jenkins/.ssh/id_rsa",
+        pattern: componentName
+    ) {
+        module = 'command'
+        args = "echo 'stopComponent for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
+    }
 }
 
 def startComponent( componentName, closure) {
-    echo "Start Component '${targetComponentName}'on Host '${hostYaml.hostname}'"
+    ansibleAdhoc(
+        inventoryPath: '/opt/ansible/inventory/dit2.yaml',
+        colorized: true,
+        privateKey: "/home/jenkins/.ssh/id_rsa",
+        pattern: componentName
+    ) {
+        module = 'command'
+        args = "echo 'startComponent for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
+    }
 }
 
 def healthCheckComponent( componentName, closure) {
-    echo "Health Check '${targetComponentName}'on Host '${hostYaml.hostname}'"
+    ansibleAdhoc(
+        inventoryPath: '/opt/ansible/inventory/dit2.yaml',
+        colorized: true,
+        privateKey: "/home/jenkins/.ssh/id_rsa",
+        pattern: componentName
+    ) {
+        module = 'command'
+        args = "echo 'healthCheckComponent for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
+    }
 }
 
 pipeline {
-    agent any
+    agent "jenkins-agent1"
 
     environment { 
         VERSION_SNAPSHOT_REPO_NAME = "thfai2000/version_snapshots"
@@ -157,121 +197,64 @@ pipeline {
 
         stage('Download Artifacts ') {
             parallel {
-                stage('deploy') {
+                stage('app') {
                     steps {
-                        downloadDeployScript("app") {
-                        }
+                        downloadComponent("app:&hv")
+                        downloadComponent("app:&st")
                     }
                 }
-
-                stage('web1') {
+                stage('web') {
                     steps {
-                        downloadComponent("web1") {
-                        }
+                        downloadComponent("web:&hv")
+                        downloadComponent("web:&st")
                     }
                 }
-                stage('web2') {
-                    steps {
-                        downloadComponent("web2") {
-                        }
-                    }
-                }
-                stage('web3') {
-                    steps {
-                        downloadComponent("web3") {
-                        }
-                    }
-                }
-                   
             }
         }
         
         stage('Stop & Install Components') {
             parallel {
-                stage ("web1") {
+                stage ("app") {
                     stages {
                         stage('stop') {
                             steps {
-                                stopComponent("web1") {
-                                    echo "completed stop web1"
-                                }
+                                stopComponent("app")
                             }
                         }
                         stage('install') {
                             steps {
-                                installComponent("web1") {
-                                    echo "completed install web1"
+                                installComponent("app")
                             }
                         }
                     }
                 }
-                stage ("web2") {
+                stage ("web") {
                     stages {
                         stage('stop') {
                             steps {
-                                stopComponent("web2") {
-                                    echo "completed stop web2"
-                                }
+                                stopComponent("web")
                             }
                         }
                         stage('install') {
                             steps {
-                                installComponent("web2") {
-                                    echo "completed install web2"
-                                }
-                            
-                            }
-                        }
-                    }
-                }
-                stage ("web3") {
-                    stages {
-                        stage('stop') {
-                            steps {
-                                stopComponent("web3") {
-                                    echo "completed stop web3"
-                                }
-                            }
-                        }
-                        stage('install') {
-                            steps {
-                                installComponent("web3") {
-                                    echo "completed install web3"
-                                }
-                            
-                            }
-                        }
-                        stage('db patch') {
-                            steps {
-                                dbPatch("web3") {
-                                    echo "completed dbPatch"
-                                }
+                                installComponent("web")
                             }
                         }
                     }
                 }
             }
-            
         }
 
         stage('Start Components') {
             parallel {
-                stage('web1') {
+                stage('app') {
                     steps {
-                        startComponent("web1") {
-                        }
+                        startComponent("app")
                     }
                 }
-                stage('web2') {
+                stage('web') {
                     steps {
-                        startComponent("web2") {
-                        }
-                    }
-                }
-                stage('web3') {
-                    steps {
-                        startComponent("web3") {
-                        }
+                        startComponent("web")
                     }
                 }
             }
@@ -279,21 +262,15 @@ pipeline {
 
         stage('Health Check Components') {
             parallel {
-                stage('web1') {
+                stage('app') {
                     steps {
-                        healthCheckComponent("web1") {
+                        healthCheckComponent("app") {
                         }
                     }
                 }
-                stage('web2') {
+                stage('web') {
                     steps {
-                        healthCheckComponent("web2") {
-                        }
-                    }
-                }
-                stage('web3') {
-                    steps {
-                        healthCheckComponent("web3") {
+                        healthCheckComponent("web") {
                         }
                     }
                 }
