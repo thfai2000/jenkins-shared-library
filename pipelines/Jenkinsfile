@@ -13,7 +13,7 @@ def checkoutEnvConfig() {
                 submoduleCfg: [],
                 userRemoteConfigs: [[url: ENV_CONFIG_GIT_SOURCE]]])
     script {
-        env.envFolderNamesString = sh(script: "ls -d */ | xargs -n 1 basename", returnStdout: true).trim()
+        env.envFolderNamesString = sh(script: "ls * | xargs -n 1 basename", returnStdout: true).trim()
     }
 }
 
@@ -107,38 +107,38 @@ def downloadDeployScript( closure) {
 def downloadComponent( componentName) {
     
     sh """
-    ansible "${componentName}" -i /opt/ansible/inventory/dit2.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'downloadComponent which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
+    ansible "${componentName}" -i env-config/ansible/inventory/${env.which_env}.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'downloadComponent which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
     """
 }
 
 def installComponent( componentName) {
     sh """
-    ansible "${componentName}" -i /opt/ansible/inventory/dit2.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'installComponent  which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
+    ansible "${componentName}" -i env-config/ansible/inventory/${env.which_env}.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'installComponent  which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
     """
 }
 
 def dbPatch( componentName) {
     sh """
-    ansible "${componentName}" -i /opt/ansible/inventory/dit2.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'dbPatch which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
+    ansible "${componentName}" -i env-config/ansible/inventory/${env.which_env}.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'dbPatch which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
     """
 
 }
 
 def stopComponent( componentName) {
     sh """
-    ansible "${componentName}" -i /opt/ansible/inventory/dit2.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'stopComponent which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
+    ansible "${componentName}" -i env-config/ansible/inventory/${env.which_env}.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'stopComponent which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
     """
 }
 
 def startComponent( componentName) {
     sh """
-    ansible "${componentName}" -i /opt/ansible/inventory/dit2.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'startComponent which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
+    ansible "${componentName}" -i env-config/ansible/inventory/${env.which_env}.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'startComponent which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
     """
 }
 
 def healthCheckComponent( componentName) {
     sh """
-    ansible "${componentName}" -i /opt/ansible/inventory/dit2.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'healthCheckComponent which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
+    ansible "${componentName}" -i env-config/ansible/inventory/${env.which_env}.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'healthCheckComponent which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
     """
 }
 
