@@ -113,7 +113,7 @@ def downloadComponent( componentName) {
 
 def installComponent( componentName) {
     sh """
-    ansible "${componentName}" -i /opt/ansible/inventory/dit2.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "installComponent 'aaa which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
+    ansible "${componentName}" -i /opt/ansible/inventory/dit2.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'installComponent  which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
     """
 }
 
