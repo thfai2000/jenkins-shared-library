@@ -64,40 +64,6 @@ def selectSnapshotAndEnv(closure){
 }
 
 
-def exportPlatformEnvironmentVariables(componentSnapshot, hostYaml, props) {
-
-    echo "Environment variables - start preparing"
-
-    def variables = [
-        'WHICH_ENV': env.which_env,
-        'WHICH_SITE': props.which_site,
-        'APPLICATION_NAME': props.application_name,
-        'HOSTNAME': hostYaml.hostname,
-        'HOME_DIR': props.home_dir,
-        'APP_BINARY_DIR': props.app_binary_dir,
-        'APP_SERVICE_ACCOUNT': props.app_service_account,
-        'APP_SERVICE_ACCOUNT_GROUP': props.app_service_account_group,
-        'KERBEROS_KEYTAB_PATH': props.kerberos_keytab_path,
-        'KERBEROS_TKT_PATH': props.kerberos_tkt_path,
-        'COMPONENT_NAME': componentSnapshot.name,
-        'COMPONENT_VERSION': componentSnapshot.version,
-        'DOWNLOAD_DIR': props.download_dir,
-        'DOWNLOAD_DEPLOY_DIR': props.download_deploy_dir,
-        'DOWNLOAD_COMPONENT_BINARY_DIR': "${props.download_dir}/${componentSnapshot.name}",
-        'COMPONENT_BINARY_DIR': "${props.app_binary_dir}/${componentSnapshot.name}",
-        'COMPONENT_SCRIPTS_DIR': "${props.app_binary_dir}/${componentSnapshot.name}/scripts",
-        'COMPONENT_LOCAL_DATA_DIR': "${props.app_binary_dir}/${componentSnapshot.name}/local-data",
-        'APP_LOG_DIR': props.app_log_dir
-    ]
-    echo "Environment variables - step1"
-    def exportedValues = variables.collect { key, value ->
-        "export ${key}=${value}"
-    }.join('\n')
-
-    echo "Environment variables - prepared"
-
-    return [exportedValues: exportedValues, variables: variables]
-}
 
 
 def downloadDeployScript( closure) {
