@@ -106,65 +106,40 @@ def downloadDeployScript( closure) {
 
 def downloadComponent( componentName) {
     
-    sh '''
-    ansible "hv" -i /opt/ansible/inventory/dit2.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'aaa which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
-    '''
+    sh """
+    ansible "${componentName}" -i /opt/ansible/inventory/dit2.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'downloadComponent which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
+    """
 }
 
 def installComponent( componentName) {
-    ansibleAdhoc(
-        inventory: '/opt/ansible/inventory/dit2.yaml',
-        colorized: true,
-        vaultTmpPath: "/home/jenkins/.ssh/id_rsa",
-        hosts: componentName,
-        module = 'command',
-        moduleArguments = "echo 'installComponent for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
-    )
+    sh """
+    ansible "${componentName}" -i /opt/ansible/inventory/dit2.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "installComponent 'aaa which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
+    """
 }
 
 def dbPatch( componentName) {
-    ansibleAdhoc(
-        inventory: '/opt/ansible/inventory/dit2.yaml',
-        colorized: true,
-        vaultTmpPath: "/home/jenkins/.ssh/id_rsa",
-        hosts: componentName,
-        module = 'command',
-        moduleArguments = "echo 'dbPatch for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
-    )
+    sh """
+    ansible "${componentName}" -i /opt/ansible/inventory/dit2.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'dbPatch which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
+    """
 
 }
 
 def stopComponent( componentName) {
-    ansibleAdhoc(
-        inventory: '/opt/ansible/inventory/dit2.yaml',
-        colorized: true,
-        vaultTmpPath: "/home/jenkins/.ssh/id_rsa",
-        hosts: componentName,
-        module = 'command',
-        moduleArguments = "echo 'stopComponent for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
-    )
+    sh """
+    ansible "${componentName}" -i /opt/ansible/inventory/dit2.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'stopComponent which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
+    """
 }
 
 def startComponent( componentName) {
-    ansibleAdhoc(
-        inventory: '/opt/ansible/inventory/dit2.yaml',
-        colorized: true,
-        vaultTmpPath: "/home/jenkins/.ssh/id_rsa",
-        hosts: componentName,
-        module = 'command',
-        moduleArguments = "echo 'startComponent for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
-    )
+    sh """
+    ansible "${componentName}" -i /opt/ansible/inventory/dit2.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'startComponent which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
+    """
 }
 
 def healthCheckComponent( componentName) {
-    ansibleAdhoc(
-        inventory: '/opt/ansible/inventory/dit2.yaml',
-        colorized: true,
-        vaultTmpPath: "/home/jenkins/.ssh/id_rsa",
-        hosts: componentName,
-        module = 'command',
-        moduleArguments = "echo 'healthCheckComponent for which_site={{ which_site }} group_name={{group_name}} test={{test}} '"
-    )
+    sh """
+    ansible "${componentName}" -i /opt/ansible/inventory/dit2.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'healthCheckComponent which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
+    """
 }
 
 pipeline {
