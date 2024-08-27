@@ -1,7 +1,9 @@
 version: '3.8'
 services:
   jenkins:
-    image: jenkins/jenkins:lts
+    image: thfai2000/jenkins-lts:latest
+    build: 
+      dockerfile: ./JenkinsLTS-Dockerfile
     privileged: true
     user: root
     ports:
@@ -9,6 +11,7 @@ services:
     - 50000:50000
     volumes:
       - ./jenkins_home/.:/var/jenkins_home
+      - /var/jenkins_home/plugins
   jenkins-agent1:
     hostname: jenkins-agent1
     image: thfai2000/jenkins-slave:latest
