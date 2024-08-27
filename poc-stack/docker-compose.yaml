@@ -1,4 +1,3 @@
-# docker-compose.yaml
 version: '3.8'
 services:
   jenkins:
@@ -12,31 +11,35 @@ services:
       - ./jenkins_home/.:/var/jenkins_home
   jenkins-agent1:
     hostname: jenkins-agent1
+    image: thfai2000/jenkins-slave:latest
     build: 
       dockerfile: ./JenkinsSlave-Dockerfile
     volumes:
       - ./jenkins_slave_ssh/:/home/jenkins/.ssh/
-      - ../sample-app/ansible:/opt/ansible
   machine1:
     hostname: machine1
+    image: thfai2000/jenkins-slave:latest
     build: 
       dockerfile: ./JenkinsSlave-Dockerfile
     volumes:
       - ./jenkins_slave_ssh/:/home/jenkins/.ssh/
   machine2:
     hostname: machine2
+    image: thfai2000/jenkins-slave:latest
     build: 
       dockerfile: ./JenkinsSlave-Dockerfile
     volumes:
       - ./jenkins_slave_ssh/:/home/jenkins/.ssh/
   machine3:
     hostname: machine3
+    image: thfai2000/jenkins-slave:latest
     build: 
       dockerfile: ./JenkinsSlave-Dockerfile
     volumes:
       - ./jenkins_slave_ssh/:/home/jenkins/.ssh/
   machine4:
     hostname: machine4
+    image: thfai2000/jenkins-slave:latest
     build: 
       dockerfile: ./JenkinsSlave-Dockerfile
     volumes:

@@ -1,10 +1,3 @@
-
-
-def getSnapshotUrl(version) {
-    def snapshotUrl = "https://raw.githubusercontent.com/$VERSION_SNAPSHOT_REPO_NAME/$GIT_BRANCH/$VERSION_SNAPSHOT_FOLDER_NAME/$version"
-    return snapshotUrl
-}
-
 def checkoutEnvConfig() {
     checkout([$class: 'GitSCM',
                 branches: [[name: env.BRANCH_NAME]],
@@ -13,36 +6,37 @@ def checkoutEnvConfig() {
                 submoduleCfg: [],
                 userRemoteConfigs: [[url: ENV_CONFIG_GIT_SOURCE]]])
     script {
-        env.envFolderNamesString = sh(script: "ls * | xargs -n 1 basename", returnStdout: true).trim()
+        env.envNamesString = sh(script: "ls * | xargs -n 1 basename", returnStdout: true).trim()
     }
 }
 
-def selectSnapshotAndEnv(closure){
+def checkoutAppSource() {
+    checkout([$class: 'GitSCM',
+                branches: [[name: env.BRANCH_NAME]],
+                doGenerateSubmoduleConfigurations: false,
+                extensions: [],
+                submoduleCfg: [],
+                userRemoteConfigs: [[url: APP_GIT_SOURCE]]])
+}
+
+def selectEnv(closure){
     echo "GIT_BRANCH: ${env.BRANCH_NAME}"
-    echo "VERSION_SNAPSHOT_REPO_NAME: $VERSION_SNAPSHOT_REPO_NAME"
+    // echo "VERSION_SNAPSHOT_REPO_NAME: $VERSION_SNAPSHOT_REPO_NAME"
     dir('env-config') {
         checkoutEnvConfig()
     }
-    def envFolderNames = env.envFolderNamesString.split("\n")
-    echo "type: ${envFolderNames.getClass()}"
-    echo "envFolderNames: ${envFolderNames}"
-    
-    def treeApiUrl = "https://api.github.com/repos/$VERSION_SNAPSHOT_REPO_NAME/contents/$VERSION_SNAPSHOT_FOLDER_NAME?ref=$GIT_BRANCH"
-
-    def response = httpRequest(url: treeApiUrl, httpMode: 'GET')
-
-    def files = []
-    if (response.status == 200) {
-        def json = readJSON(text: response.content)
-        files = json.findAll { it.type == 'file' }.collect { it.name }
+    dir('app-source') {
+        checkoutAppSource()
     }
-    snapshotVersions = files
 
+    def envNames = env.envNamesString.split("\n")
+    echo "type: ${envNames.getClass()}"
+    echo "envNames: ${envNames}"
+    
     def params = input(message: 'Provide the deployment information',
         ok: "Continue",
         parameters: [
-            choice(name: 'which_env', choices: Arrays.asList(envFolderNames), description: 'Select the environment'),
-            choice(name: 'selected_version_snapshot', choices: snapshotVersions, description: 'Select the snapshot version')
+            choice(name: 'which_env', choices: Arrays.asList(envNames), description: 'Select the environment')
         ]
     )
     if(closure){
@@ -50,25 +44,9 @@ def selectSnapshotAndEnv(closure){
     }
 
     env.which_env = params.which_env
-    env.selected_version_snapshot = params.selected_version_snapshot
-    response = httpRequest(url: getSnapshotUrl(env.selected_version_snapshot))
-
-    if (response.status == 200) {
-        env.snapshotContent = response.content
-        
-    } else {
-        error "Failed to retrieve YAML file. HTTP status: ${response.status}"
-    }
     echo "which_env=${env.which_env}"
-    echo "selected_version_snapshot=${env.selected_version_snapshot}"
 }
 
-
-
-
-def downloadDeployScript( closure) {
-    downloadComponent('deploy', closure)
-}
 
 def downloadComponent( componentName) {
     
@@ -111,17 +89,16 @@ def healthCheckComponent( componentName) {
 pipeline {
     agent { label "ansible" }
 
-    environment { 
-        VERSION_SNAPSHOT_REPO_NAME = "thfai2000/version_snapshots"
-        VERSION_SNAPSHOT_FOLDER_NAME = "sample-app"
+    environment {
         ENV_CONFIG_GIT_SOURCE = 'https://github.com/thfai2000/sample-app-configuration.git'
+        APP_GIT_SOURCE = 'https://github.com/thfai2000/sample-app.git'
     }
 
     stages {
 
         stage('Select Snapshot and Environment') {
             steps {
-                selectSnapshotAndEnv {
+                selectEnv {
                 }
             }
         }
