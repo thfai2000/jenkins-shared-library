@@ -1,11 +1,11 @@
 ---
 - name: Download Artifacts
-  hosts: "{{ target_hosts }}"
+  hosts: local
   tasks:
   - name: Gather Project Facts
     setup:
       filter: ansible_project_dir
-  - name: Make folder
+  - name: Make folder on Local
     file:
       path: "{{ artifacts_dir }}"
       state: directory
@@ -14,10 +14,17 @@
     get_url:
       url: "{{ component_artifact_url }}"
       dest: "{{ artifacts_dir }}/"
-  - name: Transfer the Artifacts to target machine
+  - name: Make folder on targt hosts
+    file:
+      path: "{{ artifacts_dir }}"
+      state: directory
+      mode: '0755'
+      delegate_to: "{{ target_hosts }}"
+  - name: Transfer the Artifacts to target hosts
     copy:
       src: "{{ item }}"
       dest: "{{ component_artifact_dest }}"
       mode: "0755"
+      delegate_to: "{{ target_hosts }}"
     with_fileglob:
       - "{{ artifacts_dir }}/*"
