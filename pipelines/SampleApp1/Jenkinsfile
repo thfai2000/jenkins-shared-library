@@ -125,90 +125,92 @@ pipeline {
     }
 
     stages {
+        node{
 
-        stage('Select Snapshot and Environment') {
-            steps {
-                selectEnv {
-                }
-            }
-        }
-
-        stage('Download Artifacts ') {
-            parallel {
-                stage('app') {
-                    steps {
-                        downloadComponent("app:&hv")
-                        downloadComponent("app:&st")
-                    }
-                }
-                stage('web') {
-                    steps {
-                        downloadComponent("web:&hv")
-                        downloadComponent("web:&st")
+            stage('Select Snapshot and Environment') {
+                steps {
+                    selectEnv {
                     }
                 }
             }
-        }
-        
-        stage('Stop & Install Components') {
-            parallel {
-                stage ("app") {
-                    stages {
-                        stage('stop') {
-                            steps {
-                                stopComponent("app")
-                            }
-                        }
-                        stage('install') {
-                            steps {
-                                installComponent("app")
-                            }
+
+            stage('Download Artifacts ') {
+                parallel {
+                    stage('app') {
+                        steps {
+                            downloadComponent("app:&hv")
+                            downloadComponent("app:&st")
                         }
                     }
-                }
-                stage ("web") {
-                    stages {
-                        stage('stop') {
-                            steps {
-                                stopComponent("web")
-                            }
-                        }
-                        stage('install') {
-                            steps {
-                                installComponent("web")
-                            }
+                    stage('web') {
+                        steps {
+                            downloadComponent("web:&hv")
+                            downloadComponent("web:&st")
                         }
                     }
                 }
             }
-        }
-
-        stage('Start Components') {
-            parallel {
-                stage('app') {
-                    steps {
-                        startComponent("app")
+            
+            stage('Stop & Install Components') {
+                parallel {
+                    stage ("app") {
+                        stages {
+                            stage('stop') {
+                                steps {
+                                    stopComponent("app")
+                                }
+                            }
+                            stage('install') {
+                                steps {
+                                    installComponent("app")
+                                }
+                            }
+                        }
                     }
-                }
-                stage('web') {
-                    steps {
-                        startComponent("web")
-                    }
-                }
-            }
-        }
-
-        stage('Health Check Components') {
-            parallel {
-                stage('app') {
-                    steps {
-                        healthCheckComponent("app") {
+                    stage ("web") {
+                        stages {
+                            stage('stop') {
+                                steps {
+                                    stopComponent("web")
+                                }
+                            }
+                            stage('install') {
+                                steps {
+                                    installComponent("web")
+                                }
+                            }
                         }
                     }
                 }
-                stage('web') {
-                    steps {
-                        healthCheckComponent("web") {
+            }
+
+            stage('Start Components') {
+                parallel {
+                    stage('app') {
+                        steps {
+                            startComponent("app")
+                        }
+                    }
+                    stage('web') {
+                        steps {
+                            startComponent("web")
+                        }
+                    }
+                }
+            }
+
+            stage('Health Check Components') {
+                parallel {
+                    stage('app') {
+                        steps {
+                            healthCheckComponent("app") {
+                            }
+                        }
+                    }
+                    stage('web') {
+                        steps {
+                            healthCheckComponent("web") {
+                            }
                         }
                     }
                 }
