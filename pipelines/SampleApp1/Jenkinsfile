@@ -56,7 +56,7 @@ def selectEnv(closure){
         closure()
     }
     echo "${params}"
-    env.which_env = params.which_env
+    env.which_env = params
     echo "which_env=${env.which_env}"
 }
 
