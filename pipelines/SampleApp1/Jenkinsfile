@@ -63,8 +63,8 @@ def selectEnv(closure){
 
 def downloadComponent( componentName, componentVersion = 'spring24') {
     
-    INVENTORY_DIR = 'env-config/ansible/inventory'
-    PLAYBOOK_DIR = 'ansible-source/ansible/playbooks'
+    INVENTORY_DIR = 'env-config/sample-app-configuration/ansible/inventory'
+    PLAYBOOK_DIR = 'ansible-source/jenkins-pipelines/pipelines/ansible/playbooks'
 
     sh """
     ansible-playbook -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}.yaml  \
