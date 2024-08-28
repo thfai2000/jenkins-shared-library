@@ -60,8 +60,12 @@ def selectEnv(closure){
     echo "which_env=${env.which_env}"
 }
 
+def getComponentVersion( componentName ) {
+    //TODO: make it find from a map
+    return 'spring24'
+}
 
-def downloadComponent( hostPattern, components, componentVersion = 'spring24') {
+def downloadComponent( hostPattern, components) {
     
     INVENTORY_DIR = 'env-config/ansible/inventory'
     PLAYBOOK_DIR = 'ansible-source/pipelines/ansible/playbooks'
@@ -72,7 +76,7 @@ def downloadComponent( hostPattern, components, componentVersion = 'spring24') {
             --key-file "/home/jenkins/.ssh/id_rsa" \
             -e "target_hosts=${hostPattern}" \
             -e "component_name=${component}" \
-            -e "component_version=${componentVersion}" \
+            -e "component_version=${getComponentVersion(component)}" \
         ${PLAYBOOK_DIR}/1-download-artifact.yaml
         """
     }
@@ -90,6 +94,7 @@ def installComponent( hostPattern, components) {
             --key-file "/home/jenkins/.ssh/id_rsa" \
             -e "target_hosts=${hostPattern}" \
             -e "component_name=${component}" \
+            -e "component_version=${getComponentVersion(component)}" \
             ${PLAYBOOK_DIR}/3-install-component.yaml
         """
     }
@@ -114,6 +119,7 @@ def stopComponent( hostPattern, components) {
             --key-file "/home/jenkins/.ssh/id_rsa" \
             -e "target_hosts=${hostPattern}" \
             -e "component_name=${component}" \
+            -e "component_version=${getComponentVersion(component)}" \
             ${PLAYBOOK_DIR}/2-stop-component.yaml
         """
     }
@@ -130,6 +136,7 @@ def startComponent( hostPattern, components) {
             --key-file "/home/jenkins/.ssh/id_rsa" \
             -e "target_hosts=${hostPattern}" \
             -e "component_name=${component}" \
+            -e "component_version=${getComponentVersion(component)}" \
             ${PLAYBOOK_DIR}/4-start-component.yaml
         """
     }
