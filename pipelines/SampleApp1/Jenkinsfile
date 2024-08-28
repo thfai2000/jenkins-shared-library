@@ -61,72 +61,81 @@ def selectEnv(closure){
 }
 
 
-def downloadComponent( componentName, componentVersion = 'spring24') {
+def downloadComponent( hostPattern, components, componentVersion = 'spring24') {
     
     INVENTORY_DIR = 'env-config/ansible/inventory'
     PLAYBOOK_DIR = 'ansible-source/pipelines/ansible/playbooks'
 
-    sh """
-    ansible-playbook -v -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}  \
-        --key-file "/home/jenkins/.ssh/id_rsa" \
-        -e "target_hosts=${componentName}" \
-        -e "component_version=${componentVersion}" \
-       ${PLAYBOOK_DIR}/1-download-artifact.yaml
-    """
+    components.each { component ->
+        sh """
+        ansible-playbook -v -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}  \
+            --key-file "/home/jenkins/.ssh/id_rsa" \
+            -e "target_hosts=${hostPattern}" \
+            -e "component_name=${component}" \
+            -e "component_version=${componentVersion}" \
+        ${PLAYBOOK_DIR}/1-download-artifact.yaml
+        """
+    }
 
 }
 
-def installComponent( componentName) {
+def installComponent( hostPattern, components) {
 
     INVENTORY_DIR = 'env-config/ansible/inventory'
     PLAYBOOK_DIR = 'ansible-source/pipelines/ansible/playbooks'
 
-    sh """
-    ansible-playbook -v -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}  \
-        --key-file "/home/jenkins/.ssh/id_rsa" \
-        -e "target_hosts=${componentName}" \
-        ${PLAYBOOK_DIR}/3-install-component.yaml
-    """
+    components.each { component ->
+        sh """
+        ansible-playbook -v -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}  \
+            --key-file "/home/jenkins/.ssh/id_rsa" \
+            -e "target_hosts=${hostPattern}" \
+            -e "component_name=${component}" \
+            ${PLAYBOOK_DIR}/3-install-component.yaml
+        """
+    }
 
 }
 
-// def dbPatch( componentName) {
+// def dbPatch( hostPattern) {
 //     sh """
-//     ansible "${componentName}" -i env-config/ansible/inventory/${env.which_env} --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'dbPatch which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
+//     ansible "${hostPattern}" -i env-config/ansible/inventory/${env.which_env} --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'dbPatch which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
 //     """
 
 // }
 
-def stopComponent( componentName) {
+def stopComponent( hostPattern) {
 
     INVENTORY_DIR = 'env-config/ansible/inventory'
     PLAYBOOK_DIR = 'ansible-source/pipelines/ansible/playbooks'
 
-    sh """
-    ansible-playbook -v -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}  \
-        --key-file "/home/jenkins/.ssh/id_rsa" \
-        -e "target_hosts=${componentName}" \
-        ${PLAYBOOK_DIR}/2-stop-component.yaml
-    """
-
+    components.each { component ->
+        sh """
+        ansible-playbook -v -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}  \
+            --key-file "/home/jenkins/.ssh/id_rsa" \
+            -e "target_hosts=${hostPattern}" \
+            ${PLAYBOOK_DIR}/2-stop-component.yaml
+        """
+    }
 }
 
-def startComponent( componentName) {
+def startComponent( hostPattern) {
 
     INVENTORY_DIR = 'env-config/ansible/inventory'
     PLAYBOOK_DIR = 'ansible-source/pipelines/ansible/playbooks'
 
-    sh """
-    ansible-playbook -v -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}  \
-        --key-file "/home/jenkins/.ssh/id_rsa" \
-        -e "target_hosts=${componentName}" \
-        ${PLAYBOOK_DIR}/4-start-component.yaml
-    """
+    components.each { component ->
+        sh """
+        ansible-playbook -v -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}  \
+            --key-file "/home/jenkins/.ssh/id_rsa" \
+            -e "target_hosts=${hostPattern}" \
+            ${PLAYBOOK_DIR}/4-start-component.yaml
+        """
+    }
 }
 
-def healthCheckComponent( componentName) {
+def healthCheckComponent( hostPattern) {
     sh """
-    ansible "${componentName}" -i env-config/ansible/inventory/${env.which_env} --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'healthCheckComponent which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
+    ansible "${hostPattern}" -i env-config/ansible/inventory/${env.which_env} --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'healthCheckComponent which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
     """
 }
 
@@ -152,14 +161,14 @@ pipeline {
             parallel {
                 stage('frontend') {
                     steps {
-                        downloadComponent("frontend:&hv")
-                        downloadComponent("frontend:&st")
+                        downloadComponent("frontend:&hv", ['app','web'])
+                        downloadComponent("frontend:&st", ['app','web'])
                     }
                 }
                 stage('backend') {
                     steps {
-                        downloadComponent("backend:&hv")
-                        downloadComponent("backend:&st")
+                        downloadComponent("backend:&hv",[])
+                        downloadComponent("backend:&st",[])
                     }
                 }
             }
@@ -171,18 +180,18 @@ pipeline {
                     stages {
                         stage('stop+install hv') {
                             steps {
-                                stopComponent("frontend:&hv")
-                                installComponent("frontend:&hv")
-                                startComponent("frontend:&hv")
-                                healthCheckComponent("frontend:&hv")
+                                stopComponent("frontend:&hv", ['app','web'])
+                                installComponent("frontend:&hv", ['app','web'])
+                                startComponent("frontend:&hv", ['app','web'])
+                                healthCheckComponent("frontend:&hv", ['app','web'])
                             }
                         }
                         stage('stop+install st') {
                             steps {
-                                stopComponent("frontend:&st")
-                                installComponent("frontend:&st")
-                                startComponent("frontend:&st")
-                                healthCheckComponent("frontend:&st")
+                                stopComponent("frontend:&st", ['app','web'])
+                                installComponent("frontend:&st", ['app','web'])
+                                startComponent("frontend:&st", ['app','web'])
+                                healthCheckComponent("frontend:&st", ['app','web'])
                             }
                         }
                     }
@@ -191,18 +200,18 @@ pipeline {
                     stages {
                         stage('stop+install hv') {
                             steps {
-                                stopComponent("backend:&hv")
-                                installComponent("backend:&hv")
-                                startComponent("backend:&hv")
-                                healthCheckComponent("backend:&hv")
+                                stopComponent("backend:&hv", [])
+                                installComponent("backend:&hv", [])
+                                startComponent("backend:&hv", [])
+                                healthCheckComponent("backend:&hv", [])
                             }
                         }
                         stage('stop+install st') {
                             steps {
-                                stopComponent("backend:&st")
-                                installComponent("backend:&st")
-                                startComponent("backend:&st")
-                                healthCheckComponent("backend:&st")
+                                stopComponent("backend:&st", [])
+                                installComponent("backend:&st", [])
+                                startComponent("backend:&st",[])
+                                healthCheckComponent("backend:&st",[])
                             }
                         }
                     }

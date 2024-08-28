@@ -2,8 +2,11 @@
 - name: Start component
   hosts: "{{ target_hosts }}"
   tasks:
-  - name: Start services
-    become: true
-    become_user: "{{component_service_account}}"
-    ansible.builtin.shell: |
-      {{ component_start_script }}
+  - name: Execute tasks for component
+    when: components is defined and '{{component_name}}' in components
+    block:
+    - name: Start services
+      become: true
+      become_user: "{{ [component_name][component_service_account] }}"
+      ansible.builtin.shell: |
+        {{ [component_name][component_start_script] }}

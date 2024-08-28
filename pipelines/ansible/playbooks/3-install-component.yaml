@@ -2,27 +2,30 @@
 - name: Install Component
   hosts: "{{ target_hosts }}"
   tasks:
-  - name: List all files in the template directory
-    find:
-      paths: "{{ artifacts_dir }}/{{ component_name }}"
-      file_type: file
-    register: found_files
+  - name: Execute tasks for component
+    when: components is defined and '{{component_name}}' in components
+    block:
+    - name: List all files in the template directory
+      find:
+        paths: "{{ artifacts_dir }}/{{ component_name }}"
+        file_type: file
+      register: found_files
 
-  - name: Process template files
-    template:
-      src: "{{ item.path }}"
-      dest: "{{ item.path | regex_replace('\\.j2$', '') }}"  # Remove .j2 extension
-    loop: "{{ found_files.files }}"
-    when: item.path.endswith('.j2')  # Check for .j2 extension
+    - name: Process template files
+      template:
+        src: "{{ item.path }}"
+        dest: "{{ item.path | regex_replace('\\.j2$', '') }}"  # Remove .j2 extension
+      loop: "{{ found_files.files }}"
+      when: item.path.endswith('.j2')  # Check for .j2 extension
 
-  - name: Remove all .j2 files
-    file:
-      path: "{{ item.path }}"
-      state: absent
-    loop: "{{ found_files.files }}"
-    when: item.path.endswith('.j2')  # Check for .j2 extension
+    - name: Remove all .j2 files
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ found_files.files }}"
+      when: item.path.endswith('.j2')  # Check for .j2 extension
 
-  - name: Custom Install
-    ansible.builtin.shell: |
-      {{ component_install_script }}
-    when: component_install_script is defined
+    - name: Custom Install
+      ansible.builtin.shell: |
+        {{ [component_name][component_install_script] }}
+      when: "[component_name][component_install_script] is defined"

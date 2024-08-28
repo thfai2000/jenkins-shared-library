@@ -2,8 +2,11 @@
 - name: Stop component
   hosts: "{{ target_hosts }}"
   tasks:
+  - name: Execute tasks for component
+    when: components is defined and '{{component_name}}' in components
+    block:
     - name: Stop services
       become: true
-      become_user: "{{component_service_account}}"
+      become_user: "{{ [component_name][component_service_account] }}"
       ansible.builtin.shell: |
-        {{ component_stop_script }}
+        {{ [component_name][component_stop_script] }}

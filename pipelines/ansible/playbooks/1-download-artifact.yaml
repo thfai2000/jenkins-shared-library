@@ -2,32 +2,33 @@
 - name: Download Artifacts
   hosts: "{{ target_hosts }}"
   tasks:
-  - name: Gather Project Facts
-    setup:
-      filter: ansible_project_dir
-  - name: Make folder on Local
-    delegate_to: localhost
-    file:
-      path: "{{ artifacts_dir }}/{{ component_name }}"
-      state: directory
-      mode: '0755'
-    
-  - name: Download Software Component Artifacts
-    delegate_to: localhost
-    get_url:
-      url: "{{ component_artifact_url }}"
-      dest: "{{ artifacts_dir }}/{{ component_name }}/"
-    
-  - name: Make folder on target hosts
-    file:
-      path: "{{ artifacts_dir }}/{{ component_name }}"
-      state: directory
-      mode: '0755'
+  - name: Execute tasks for component
+    when: components is defined and '{{component_name}}' in components
+    block:
+      - name: Make folder on Local
+        delegate_to: localhost
+        file:
+          path: "{{ artifacts_dir }}/{{ component_name }}"
+          state: directory
+          mode: '0755'
 
-  - name: Transfer the Artifacts to target hosts
-    copy:
-      src: "{{ item }}"
-      dest: "{{ artifacts_dir }}/{{ component_name }}"
-      mode: "0755"
-    with_fileglob:
-      - "{{ artifacts_dir }}/{{ component_name }}/*"
+      - name: Download Software Component Artifacts
+        delegate_to: localhost
+        get_url:
+          url: "{{ component_artifact_url }}"
+          dest: "{{ artifacts_dir }}/{{ component_name }}/"
+
+      - name: Make folder on target hosts
+        file:
+          path: "{{ artifacts_dir }}/{{ component_name }}"
+          state: directory
+          mode: '0755'
+
+      - name: Transfer the Artifacts to target hosts
+        copy:
+          src: "{{ item }}"
+          dest: "{{ artifacts_dir }}/{{ component_name }}"
+          mode: "0755"
+        with_fileglob:
+          - "{{ artifacts_dir }}/{{ component_name }}/*"
+    
