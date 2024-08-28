@@ -22,12 +22,6 @@
     loop: "{{ found_files.files }}"
     when: item.path.endswith('.j2')  # Check for .j2 extension
 
-  - name: Make folder
-    file:
-      path: "{{ component_artifact_dest }}"
-      state: directory
-      mode: '0755'
-
   - name: Custom Install
     ansible.builtin.shell: |
       {{ component_install_script }}
