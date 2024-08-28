@@ -69,7 +69,7 @@ def downloadComponent( componentName, componentVersion = 'spring24') {
     sh """
     ansible-playbook -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}.yaml  \
         --key-file "/home/jenkins/.ssh/id_rsa" \
-        -e "target_hosts=${group}" \
+        -e "target_hosts=${componentName}" \
         -e "component_version=${componentVersion}" \
        ${PLAYBOOK_DIR}/1-download-artifact.yaml
     """
@@ -83,7 +83,7 @@ def installComponent( componentName) {
     sh """
     ansible-playbook -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}.yaml  \
         --key-file "/home/jenkins/.ssh/id_rsa" \
-        -e "target_hosts=${group}" \
+        -e "target_hosts=${componentName}" \
         -e "component_version=${componentVersion}" \
         ${PLAYBOOK_DIR}/3-install-component.yaml
     """
