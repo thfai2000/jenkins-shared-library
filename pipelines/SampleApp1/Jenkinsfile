@@ -67,7 +67,7 @@ def downloadComponent( componentName, componentVersion = 'spring24') {
     PLAYBOOK_DIR = 'ansible-source/pipelines/ansible/playbooks'
 
     sh """
-    ansible-playbook -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}  \
+    ansible-playbook -vvv -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}  \
         --key-file "/home/jenkins/.ssh/id_rsa" \
         -e "target_hosts=${componentName}" \
         -e "component_version=${componentVersion}" \
@@ -82,7 +82,7 @@ def installComponent( componentName) {
     PLAYBOOK_DIR = 'ansible-source/pipelines/ansible/playbooks'
 
     sh """
-    ansible-playbook -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}  \
+    ansible-playbook -vvv -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}  \
         --key-file "/home/jenkins/.ssh/id_rsa" \
         -e "target_hosts=${componentName}" \
         ${PLAYBOOK_DIR}/3-install-component.yaml
@@ -103,7 +103,7 @@ def stopComponent( componentName) {
     PLAYBOOK_DIR = 'ansible-source/pipelines/ansible/playbooks'
 
     sh """
-    ansible-playbook -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}  \
+    ansible-playbook -vvv -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}  \
         --key-file "/home/jenkins/.ssh/id_rsa" \
         -e "target_hosts=${componentName}" \
         ${PLAYBOOK_DIR}/2-stop-component.yaml
@@ -117,7 +117,7 @@ def startComponent( componentName) {
     PLAYBOOK_DIR = 'ansible-source/pipelines/ansible/playbooks'
 
     sh """
-    ansible-playbook -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}  \
+    ansible-playbook -vvv -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}  \
         --key-file "/home/jenkins/.ssh/id_rsa" \
         -e "target_hosts=${componentName}" \
         ${PLAYBOOK_DIR}/4-start-component.yaml
