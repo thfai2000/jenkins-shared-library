@@ -90,22 +90,37 @@ def installComponent( componentName) {
 
 }
 
-def dbPatch( componentName) {
-    sh """
-    ansible "${componentName}" -i env-config/ansible/inventory/${env.which_env} --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'dbPatch which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
-    """
+// def dbPatch( componentName) {
+//     sh """
+//     ansible "${componentName}" -i env-config/ansible/inventory/${env.which_env} --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'dbPatch which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
+//     """
 
-}
+// }
 
 def stopComponent( componentName) {
+
+    INVENTORY_DIR = 'env-config/ansible/inventory'
+    PLAYBOOK_DIR = 'ansible-source/pipelines/ansible/playbooks'
+
     sh """
-    ansible "${componentName}" -i env-config/ansible/inventory/${env.which_env} --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'stopComponent which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
+    ansible-playbook -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}  \
+        --key-file "/home/jenkins/.ssh/id_rsa" \
+        -e "target_hosts=${componentName}" \
+        ${PLAYBOOK_DIR}/2-stop-component.yaml
     """
+
 }
 
 def startComponent( componentName) {
+
+    INVENTORY_DIR = 'env-config/ansible/inventory'
+    PLAYBOOK_DIR = 'ansible-source/pipelines/ansible/playbooks'
+
     sh """
-    ansible "${componentName}" -i env-config/ansible/inventory/${env.which_env} --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'startComponent which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
+    ansible-playbook -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}  \
+        --key-file "/home/jenkins/.ssh/id_rsa" \
+        -e "target_hosts=${componentName}" \
+        ${PLAYBOOK_DIR}/4-start-component.yaml
     """
 }
 
