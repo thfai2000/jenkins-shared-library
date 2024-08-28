@@ -6,9 +6,7 @@ def checkoutEnvConfig() {
                 submoduleCfg: [],
                 userRemoteConfigs: [[url: ENV_CONFIG_GIT_SOURCE]]])
     script {
-        env.envNamesString = sh(script: """
-        ls ansible/inventory/* | xargs -n 1 basename | sed 's/\.[^.]*$//'
-        """, returnStdout: true).trim()
+        env.envNamesString = sh(script: "ls ansible/inventory/* | xargs -n 1 basename ", returnStdout: true).trim()
     }
 }
 
@@ -69,7 +67,7 @@ def downloadComponent( componentName, componentVersion = 'spring24') {
     PLAYBOOK_DIR = 'ansible-source/pipelines/ansible/playbooks'
 
     sh """
-    ansible-playbook -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}.yaml  \
+    ansible-playbook -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}  \
         --key-file "/home/jenkins/.ssh/id_rsa" \
         -e "target_hosts=${componentName}" \
         -e "component_version=${componentVersion}" \
@@ -84,7 +82,7 @@ def installComponent( componentName) {
     PLAYBOOK_DIR = 'ansible-source/pipelines/ansible/playbooks'
 
     sh """
-    ansible-playbook -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}.yaml  \
+    ansible-playbook -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}  \
         --key-file "/home/jenkins/.ssh/id_rsa" \
         -e "target_hosts=${componentName}" \
         -e "component_version=${componentVersion}" \
@@ -95,26 +93,26 @@ def installComponent( componentName) {
 
 def dbPatch( componentName) {
     sh """
-    ansible "${componentName}" -i env-config/ansible/inventory/${env.which_env}.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'dbPatch which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
+    ansible "${componentName}" -i env-config/ansible/inventory/${env.which_env} --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'dbPatch which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
     """
 
 }
 
 def stopComponent( componentName) {
     sh """
-    ansible "${componentName}" -i env-config/ansible/inventory/${env.which_env}.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'stopComponent which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
+    ansible "${componentName}" -i env-config/ansible/inventory/${env.which_env} --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'stopComponent which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
     """
 }
 
 def startComponent( componentName) {
     sh """
-    ansible "${componentName}" -i env-config/ansible/inventory/${env.which_env}.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'startComponent which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
+    ansible "${componentName}" -i env-config/ansible/inventory/${env.which_env} --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'startComponent which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
     """
 }
 
 def healthCheckComponent( componentName) {
     sh """
-    ansible "${componentName}" -i env-config/ansible/inventory/${env.which_env}.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'healthCheckComponent which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
+    ansible "${componentName}" -i env-config/ansible/inventory/${env.which_env} --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'healthCheckComponent which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
     """
 }
 
