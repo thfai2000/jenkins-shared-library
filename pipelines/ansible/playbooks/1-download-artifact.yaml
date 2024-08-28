@@ -13,7 +13,7 @@
   - name: Download Software Component Artifacts
     get_url:
       url: "{{ component_artifact_url }}"
-      dest: "{{ artifacts_dir }}/."
+      dest: "{{ artifacts_dir }}/"
   - name: Transfer the Artifacts to target machine
     copy:
       src: "{{ item }}"
