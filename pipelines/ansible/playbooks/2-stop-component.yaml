@@ -3,5 +3,7 @@
   hosts: "{{ target_hosts }}"
   tasks:
     - name: Stop services
+      become: true
+      become_user: "{{component_service_app}}"
       ansible.builtin.shell: |
         {{ component_stop_script_path }}

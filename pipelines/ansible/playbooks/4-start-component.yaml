@@ -3,6 +3,8 @@
   hosts: "{{ target_hosts }}"
   tasks:
   - name: Start services
+    become: true
+    become_user: "{{component_service_app}}"
     ansible.builtin.shell: |
       {{ component_start_script_path }}
 
