@@ -3,8 +3,6 @@
   hosts: "{{ target_hosts }}"
   tasks:
   - name: Start services
-    debug:
-      msg: "This is task for start commnad"
     ansible.builtin.shell: |
       {{ component_start_script_path }}
 

@@ -2,9 +2,6 @@
 - name: Stop component
   hosts: "{{ target_hosts }}"
   tasks:
-  - name: Stop services
-    debug:
-      msg: "This is task for stop commnad"
-    ansible.builtin.shell: |
-      {{ component_stop_script_path }}
-    
+    - name: Stop services
+      ansible.builtin.shell: |
+        {{ component_stop_script_path }}
