@@ -6,7 +6,7 @@ def checkoutEnvConfig() {
                 submoduleCfg: [],
                 userRemoteConfigs: [[url: ENV_CONFIG_GIT_SOURCE]]])
     script {
-        env.envNamesString = sh(script: "ls * | xargs -n 1 basename", returnStdout: true).trim()
+        env.envNamesString = sh(script: "ls ansible/inventory/* | xargs -n 1 basename", returnStdout: true).trim()
     }
 }
 
