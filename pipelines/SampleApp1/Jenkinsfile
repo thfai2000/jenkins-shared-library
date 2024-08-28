@@ -124,99 +124,99 @@ pipeline {
         ANSIBLE_GIT_SOURCE = 'https://github.com/thfai2000/jenkins-pipelines.git'
     }
 
-    stages {
-        node{
 
-            stage('Select Snapshot and Environment') {
-                steps {
-                    selectEnv {
+    node{
+
+        stage('Select Snapshot and Environment') {
+            steps {
+                selectEnv {
+                }
+            }
+        }
+
+        stage('Download Artifacts ') {
+            parallel {
+                stage('app') {
+                    steps {
+                        downloadComponent("app:&hv")
+                        downloadComponent("app:&st")
+                    }
+                }
+                stage('web') {
+                    steps {
+                        downloadComponent("web:&hv")
+                        downloadComponent("web:&st")
                     }
                 }
             }
-
-            stage('Download Artifacts ') {
-                parallel {
-                    stage('app') {
-                        steps {
-                            downloadComponent("app:&hv")
-                            downloadComponent("app:&st")
-                        }
-                    }
-                    stage('web') {
-                        steps {
-                            downloadComponent("web:&hv")
-                            downloadComponent("web:&st")
-                        }
-                    }
-                }
-            }
-            
-            stage('Stop & Install Components') {
-                parallel {
-                    stage ("app") {
-                        stages {
-                            stage('stop') {
-                                steps {
-                                    stopComponent("app")
-                                }
-                            }
-                            stage('install') {
-                                steps {
-                                    installComponent("app")
-                                }
+        }
+        
+        stage('Stop & Install Components') {
+            parallel {
+                stage ("app") {
+                    stages {
+                        stage('stop') {
+                            steps {
+                                stopComponent("app")
                             }
                         }
-                    }
-                    stage ("web") {
-                        stages {
-                            stage('stop') {
-                                steps {
-                                    stopComponent("web")
-                                }
-                            }
-                            stage('install') {
-                                steps {
-                                    installComponent("web")
-                                }
+                        stage('install') {
+                            steps {
+                                installComponent("app")
                             }
                         }
                     }
                 }
-            }
-
-            stage('Start Components') {
-                parallel {
-                    stage('app') {
-                        steps {
-                            startComponent("app")
-                        }
-                    }
-                    stage('web') {
-                        steps {
-                            startComponent("web")
-                        }
-                    }
-                }
-            }
-
-            stage('Health Check Components') {
-                parallel {
-                    stage('app') {
-                        steps {
-                            healthCheckComponent("app") {
+                stage ("web") {
+                    stages {
+                        stage('stop') {
+                            steps {
+                                stopComponent("web")
                             }
                         }
-                    }
-                    stage('web') {
-                        steps {
-                            healthCheckComponent("web") {
+                        stage('install') {
+                            steps {
+                                installComponent("web")
                             }
                         }
                     }
                 }
             }
         }
+
+        stage('Start Components') {
+            parallel {
+                stage('app') {
+                    steps {
+                        startComponent("app")
+                    }
+                }
+                stage('web') {
+                    steps {
+                        startComponent("web")
+                    }
+                }
+            }
+        }
+
+        stage('Health Check Components') {
+            parallel {
+                stage('app') {
+                    steps {
+                        healthCheckComponent("app") {
+                        }
+                    }
+                }
+                stage('web') {
+                    steps {
+                        healthCheckComponent("web") {
+                        }
+                    }
+                }
+            }
+        }
     }
+
     post {
         always {
             echo "completed."
