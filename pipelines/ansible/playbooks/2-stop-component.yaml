@@ -9,6 +9,6 @@
     block:
     - name: Stop services
       become: true
-      become_user: "{{ [component_name][component_service_account] }}"
+      become_user: "{{ component_properties[component_name][component_service_account] }}"
       ansible.builtin.shell: |
-        {{ [component_name][component_stop_script] }}
+        {{ component_properties[component_name][component_stop_script] }}
