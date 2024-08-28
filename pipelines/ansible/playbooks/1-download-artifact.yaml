@@ -1,9 +1,11 @@
 ---
 - name: Download Artifacts
   hosts: "{{ target_hosts }}"
+  vars:
+    target_component: "{{ component_name }}"
   tasks:
   - name: Execute tasks for component
-    when: components is defined and '{{component_name}}' in components
+    when: components is defined and target_component in components
     block:
       - name: Make folder on Local
         delegate_to: localhost
