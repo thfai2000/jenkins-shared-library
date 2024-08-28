@@ -4,7 +4,7 @@
   tasks:
   - name: Start services
     become: true
-    become_user: "{{component_service_app}}"
+    become_user: "{{component_service_account}}"
     ansible.builtin.shell: |
       {{ component_start_script }}
 
