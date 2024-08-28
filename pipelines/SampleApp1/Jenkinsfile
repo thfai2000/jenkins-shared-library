@@ -67,6 +67,11 @@ def downloadComponent( componentName, componentVersion = 'spring24') {
     PLAYBOOK_DIR = 'ansible-source/jenkins-pipelines/pipelines/ansible/playbooks'
 
     sh """
+        ls ansible-source
+        ls ansible-source/jenkins-pipelines
+    """
+
+    sh """
     ansible-playbook -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}.yaml  \
         --key-file "/home/jenkins/.ssh/id_rsa" \
         -e "target_hosts=${componentName}" \
