@@ -103,7 +103,7 @@ def installComponent( hostPattern, components) {
 
 // }
 
-def stopComponent( hostPattern) {
+def stopComponent( hostPattern, components) {
 
     INVENTORY_DIR = 'env-config/ansible/inventory'
     PLAYBOOK_DIR = 'ansible-source/pipelines/ansible/playbooks'
@@ -118,7 +118,7 @@ def stopComponent( hostPattern) {
     }
 }
 
-def startComponent( hostPattern) {
+def startComponent( hostPattern, components) {
 
     INVENTORY_DIR = 'env-config/ansible/inventory'
     PLAYBOOK_DIR = 'ansible-source/pipelines/ansible/playbooks'
@@ -133,10 +133,13 @@ def startComponent( hostPattern) {
     }
 }
 
-def healthCheckComponent( hostPattern) {
-    sh """
-    ansible "${hostPattern}" -i env-config/ansible/inventory/${env.which_env} --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'healthCheckComponent which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
-    """
+def healthCheckComponent( hostPattern, components) {
+
+    components.each { component ->
+        sh """
+        ansible "${hostPattern}" -i env-config/ansible/inventory/${env.which_env} --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'healthCheckComponent which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
+        """
+    }
 }
 
 pipeline {
