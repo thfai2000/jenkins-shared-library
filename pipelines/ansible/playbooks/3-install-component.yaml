@@ -27,12 +27,8 @@
       path: "{{ component_artifact_dest }}"
       state: directory
       mode: '0755'
-    
-  - name: Install the files 
-    copy:
-      become: true
-      src: "{{ item }}"
-      dest: "{{ component_artifact_dest }}"
-      mode: "0755"
-    with_fileglob:
-      - "{{ artifacts_dir }}/{{ component_name }}/*"
+
+  - name: Custom Install
+    ansible.builtin.shell: |
+      {{ component_install_script }}
+    when: component_install_script is defined

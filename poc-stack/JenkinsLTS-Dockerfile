@@ -40,5 +40,5 @@ RUN jenkins-plugin-cli --plugins email-ext:1814.v404722f34263
 RUN jenkins-plugin-cli --plugins mailer:472.vf7c289a_4b_420
 
 USER root
-RUN apt-get -y update && apt-get -y install vim net-tools
+RUN apt-get -y update && apt-get -y install vim net-tools sudo
 USER jenkins

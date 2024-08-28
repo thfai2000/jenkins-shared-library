@@ -6,4 +6,4 @@
       become: true
       become_user: "{{component_service_account}}"
       ansible.builtin.shell: |
-        {{ component_stop_script_path }}
+        {{ component_stop_script }}
