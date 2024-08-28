@@ -85,7 +85,6 @@ def installComponent( componentName) {
     ansible-playbook -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}  \
         --key-file "/home/jenkins/.ssh/id_rsa" \
         -e "target_hosts=${componentName}" \
-        -e "component_version=${componentVersion}" \
         ${PLAYBOOK_DIR}/3-install-component.yaml
     """
 
