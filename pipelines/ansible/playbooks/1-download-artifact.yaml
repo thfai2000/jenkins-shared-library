@@ -1,6 +1,6 @@
 ---
 - name: Download Artifacts
-  hosts: local
+  hosts: localhost
   tasks:
   - name: Gather Project Facts
     setup:
