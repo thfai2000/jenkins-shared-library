@@ -150,79 +150,61 @@ pipeline {
 
         stage('Download Artifacts ') {
             parallel {
-                stage('app') {
+                stage('frontend') {
                     steps {
-                        downloadComponent("app:&hv")
-                        downloadComponent("app:&st")
+                        downloadComponent("frontend:&hv")
+                        downloadComponent("frontend:&st")
                     }
                 }
-                stage('web') {
+                stage('backend') {
                     steps {
-                        downloadComponent("web:&hv")
-                        downloadComponent("web:&st")
+                        downloadComponent("backend:&hv")
+                        downloadComponent("backend:&st")
                     }
                 }
             }
         }
         
-        stage('Stop & Install Components') {
+        stage('Rolling Install Components') {
             parallel {
-                stage ("app") {
+                stage ("frontend") {
                     stages {
-                        stage('stop') {
+                        stage('stop+install hv') {
                             steps {
-                                stopComponent("app")
+                                stopComponent("frontend:&hv")
+                                installComponent("frontend:&hv")
+                                startComponent("frontend:&hv")
+                                healthCheckComponent("frontend:&hv")
                             }
                         }
-                        stage('install') {
+                        stage('stop+install st') {
                             steps {
-                                installComponent("app")
+                                stopComponent("frontend:&st")
+                                installComponent("frontend:&st")
+                                startComponent("frontend:&st")
+                                healthCheckComponent("frontend:&st")
                             }
                         }
                     }
                 }
-                stage ("web") {
+                stage ("backend") {
                     stages {
-                        stage('stop') {
+                        stage('stop+install hv') {
                             steps {
-                                stopComponent("web")
+                                stopComponent("backend:&hv")
+                                installComponent("backend:&hv")
+                                startComponent("backend:&hv")
+                                healthCheckComponent("backend:&hv")
                             }
                         }
-                        stage('install') {
+                        stage('stop+install st') {
                             steps {
-                                installComponent("web")
+                                stopComponent("backend:&st")
+                                installComponent("backend:&st")
+                                startComponent("backend:&st")
+                                healthCheckComponent("backend:&st")
                             }
                         }
-                    }
-                }
-            }
-        }
-
-        stage('Start Components') {
-            parallel {
-                stage('app') {
-                    steps {
-                        startComponent("app")
-                    }
-                }
-                stage('web') {
-                    steps {
-                        startComponent("web")
-                    }
-                }
-            }
-        }
-
-        stage('Health Check Components') {
-            parallel {
-                stage('app') {
-                    steps {
-                        healthCheckComponent("app") 
-                    }
-                }
-                stage('web') {
-                    steps {
-                        healthCheckComponent("web")
                     }
                 }
             }
