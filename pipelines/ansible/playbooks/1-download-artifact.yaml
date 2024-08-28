@@ -5,6 +5,11 @@
   - name: Gather Project Facts
     setup:
       filter: ansible_project_dir
+  - name: Make folder
+    file:
+      path: artifacts
+      state: directory
+      mode: '0755'
   - name: Download Software Component Artifacts
     get_url:
       url: "{{ component_artifact_url }}"
@@ -14,5 +19,3 @@
       src: artifacts/.
       dest: "{{ component_artifact_dest }}"
       mode: "0755"
-
-
