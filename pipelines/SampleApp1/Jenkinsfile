@@ -48,15 +48,15 @@ def selectEnv(closure){
 }
 
 
-def downloadComponent( componentName, group) {
+def downloadComponent( componentName, componentVersion = 'spring24') {
     
     INVENTORY_DIR = 'env-config/ansible/inventory'
-    COMPONENT_VERSION = 'spring24'
 
     sh """
-    ansible-playbook -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}.yaml --key-file "/home/jenkins/.ssh/id_rsa" \
+    ansible-playbook -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}.yaml  \
+        --key-file "/home/jenkins/.ssh/id_rsa" \
         -e "target_hosts=${group}" \
-        -e "component1_artifact_url=https://raw.githubusercontent.com/thfai2000/sample-app/release/${COMPONENT_VERSION}/app.html" \
+        -e "component_version=${componentVersion}" \
         download.yaml
     """
 
