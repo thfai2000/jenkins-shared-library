@@ -55,7 +55,7 @@ def selectEnv(closure){
     if(closure){
         closure()
     }
-
+    echo "${params}"
     env.which_env = params.which_env
     echo "which_env=${env.which_env}"
 }
@@ -124,9 +124,8 @@ pipeline {
         ANSIBLE_GIT_SOURCE = 'https://github.com/thfai2000/jenkins-pipelines.git'
     }
 
-
-    node{
-
+    stages {
+        
         stage('Select Snapshot and Environment') {
             steps {
                 selectEnv {
@@ -216,7 +215,6 @@ pipeline {
             }
         }
     }
-
     post {
         always {
             echo "completed."
