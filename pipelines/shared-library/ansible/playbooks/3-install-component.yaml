@@ -1,0 +1,23 @@
+---
+- name: Install Component
+  hosts: "{{ target_hosts }}"
+  tasks:
+  - name: List all files in the template directory
+    find:
+      paths: "{{ template_directory }}"
+      file_type: file
+    register: found_files
+
+  - name: Process template files
+    template:
+      src: "{{ item.path }}"
+      dest: "{{ item.path | regex_replace('\\.j2$', '') }}"  # Remove .j2 extension
+    loop: "{{ found_files.files }}"
+    when: item.path.endswith('.j2')  # Check for .j2 extension
+
+  - name: Remove all .j2 files
+    file:
+      path: "{{ item.path }}"
+      state: absent
+    loop: "{{ found_files.files }}"
+    when: item.path.endswith('.j2')  # Check for .j2 extension

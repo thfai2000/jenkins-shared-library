@@ -19,6 +19,15 @@ def checkoutAppSource() {
                 userRemoteConfigs: [[url: APP_GIT_SOURCE]]])
 }
 
+def checkoutAnsibleSource() {
+    checkout([$class: 'GitSCM',
+                branches: [[name: env.BRANCH_NAME]],
+                doGenerateSubmoduleConfigurations: false,
+                extensions: [],
+                submoduleCfg: [],
+                userRemoteConfigs: [[url: ANSIBLE_GIT_SOURCE]]])
+}
+
 def selectEnv(closure){
     echo "GIT_BRANCH: ${env.BRANCH_NAME}"
     // echo "VERSION_SNAPSHOT_REPO_NAME: $VERSION_SNAPSHOT_REPO_NAME"
@@ -28,6 +37,10 @@ def selectEnv(closure){
     dir('app-source') {
         checkoutAppSource()
     }
+    dir('ansible-source'){
+        checkoutAnsibleSource()
+    }
+
 
     def envNames = env.envNamesString.split("\n")
     echo "type: ${envNames.getClass()}"
@@ -51,21 +64,30 @@ def selectEnv(closure){
 def downloadComponent( componentName, componentVersion = 'spring24') {
     
     INVENTORY_DIR = 'env-config/ansible/inventory'
+    PLAYBOOK_DIR = 'ansible-source/ansible/playbooks'
 
     sh """
     ansible-playbook -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}.yaml  \
         --key-file "/home/jenkins/.ssh/id_rsa" \
         -e "target_hosts=${group}" \
         -e "component_version=${componentVersion}" \
-        download.yaml
+       ${PLAYBOOK_DIR}/1-download-artifact.yaml
     """
 
 }
 
 def installComponent( componentName) {
+
+    INVENTORY_DIR = 'env-config/ansible/inventory'
+
     sh """
-    ansible "${componentName}" -i env-config/ansible/inventory/${env.which_env}.yaml --key-file "/home/jenkins/.ssh/id_rsa" -m command -a "echo 'installComponent  which_site={{ which_site }} group_name={{group_name}} test={{test}} '" 
+    ansible-playbook -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}.yaml  \
+        --key-file "/home/jenkins/.ssh/id_rsa" \
+        -e "target_hosts=${group}" \
+        -e "component_version=${componentVersion}" \
+        ${PLAYBOOK_DIR}/3-install-component.yaml
     """
+
 }
 
 def dbPatch( componentName) {
@@ -99,6 +121,7 @@ pipeline {
     environment {
         ENV_CONFIG_GIT_SOURCE = 'https://github.com/thfai2000/sample-app-configuration.git'
         APP_GIT_SOURCE = 'https://github.com/thfai2000/sample-app.git'
+        ANSIBLE_GIT_SOURCE = 'https://github.com/thfai2000/jenkins-pipelines.git'
     }
 
     stages {
