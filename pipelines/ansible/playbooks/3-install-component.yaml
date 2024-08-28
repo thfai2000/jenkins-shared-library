@@ -4,7 +4,7 @@
   tasks:
   - name: List all files in the template directory
     find:
-      paths: "{{ artifacts_dir }}"
+      paths: "{{ artifacts_dir }}/{{ component_name }}"
       file_type: file
     register: found_files
 
@@ -21,3 +21,11 @@
       state: absent
     loop: "{{ found_files.files }}"
     when: item.path.endswith('.j2')  # Check for .j2 extension
+
+  - name: Install the files 
+    copy:
+      src: "{{ item }}"
+      dest: "{{ component_artifact_dest }}"
+      mode: "0755"
+    with_fileglob:
+      - "{{ artifacts_dir }}/{{ component_name }}/*"

@@ -8,7 +8,7 @@
   - name: Make folder on Local
     delegate_to: localhost
     file:
-      path: "{{ artifacts_dir }}"
+      path: "{{ artifacts_dir }}/{{ component_name }}"
       state: directory
       mode: '0755'
     
@@ -16,18 +16,18 @@
     delegate_to: localhost
     get_url:
       url: "{{ component_artifact_url }}"
-      dest: "{{ artifacts_dir }}/"
+      dest: "{{ artifacts_dir }}/{{ component_name }}/"
     
   - name: Make folder on target hosts
     file:
-      path: "{{ artifacts_dir }}"
+      path: "{{ artifacts_dir }}/{{ component_name }}"
       state: directory
       mode: '0755'
 
   - name: Transfer the Artifacts to target hosts
     copy:
       src: "{{ item }}"
-      dest: "{{ component_artifact_dest }}"
+      dest: "{{ artifacts_dir }}/{{ component_name }}"
       mode: "0755"
     with_fileglob:
-      - "{{ artifacts_dir }}/*"
+      - "{{ artifacts_dir }}/{{ component_name }}/*"
