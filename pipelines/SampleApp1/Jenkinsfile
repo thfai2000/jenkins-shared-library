@@ -6,7 +6,7 @@ def checkoutEnvConfig() {
                 submoduleCfg: [],
                 userRemoteConfigs: [[url: ENV_CONFIG_GIT_SOURCE]]])
     script {
-        env.envNamesString = sh(script: "ls ansible/inventory/* | xargs -n 1 basename", returnStdout: true).trim()
+        env.envNamesString = sh(script: "ls ansible/inventory/* | xargs -n 1 basename | sed 's/\\.[^.]*$//'", returnStdout: true).trim()
     }
 }
 
@@ -65,7 +65,6 @@ def downloadComponent( componentName, componentVersion = 'spring24') {
     
     INVENTORY_DIR = 'env-config/ansible/inventory'
     PLAYBOOK_DIR = 'ansible-source/pipelines/ansible/playbooks'
-
 
     sh """
     ansible-playbook -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}.yaml  \
