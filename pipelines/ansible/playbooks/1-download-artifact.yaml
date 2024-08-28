@@ -7,17 +7,17 @@
       filter: ansible_project_dir
   - name: Make folder
     file:
-      path: artifacts
+      path: {{ artifacts_dir }}
       state: directory
       mode: '0755'
   - name: Download Software Component Artifacts
     get_url:
       url: "{{ component_artifact_url }}"
-      dest: artifacts/.
+      dest: {{ artifacts_dir }}/.
   - name: Transfer the Artifacts to target machine
     copy:
       src: "{{ item }}"
       dest: "{{ component_artifact_dest }}"
       mode: "0755"
     with_fileglob:
-      - artifacts/*
+      - {{ artifacts_dir }}/*

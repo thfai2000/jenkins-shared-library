@@ -4,7 +4,7 @@
   tasks:
   - name: List all files in the template directory
     find:
-      paths: "{{ template_directory }}"
+      paths: "{{ artifacts_dir }}"
       file_type: file
     register: found_files
 
