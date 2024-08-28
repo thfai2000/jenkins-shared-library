@@ -217,14 +217,12 @@ pipeline {
             parallel {
                 stage('app') {
                     steps {
-                        healthCheckComponent("app") {
-                        }
+                        healthCheckComponent("app") 
                     }
                 }
                 stage('web') {
                     steps {
-                        healthCheckComponent("web") {
-                        }
+                        healthCheckComponent("web")
                     }
                 }
             }
