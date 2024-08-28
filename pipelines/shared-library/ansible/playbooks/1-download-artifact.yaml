@@ -5,15 +5,14 @@
   - name: Gather Project Facts
     setup:
       filter: ansible_project_dir
-  - name: Download the Deployment Tools
-    ansible.builtin.debug:
-        msg: 'Logging in as {{ variable_name }}'
-    copy:
-      src: "{{ hostvars['ansible_tower_host']['ansible_project_dir'] }}/tools/linux/gomplate"
-      dest: /path/on/target/machine/
-      mode: "0755"
   - name: Download Software Component Artifacts
     get_url:
-      url: "https://github.com/thfai2000/ansible-sample-app/releases/download/{tag}/{artifact}"
-      dest: /path/to/save/artifact
+      url: "{{ component_artifact_url }}"
+      dest: artifacts/.
+  - name: Transfer the Artifacts to target machine
+    copy:
+      src: artifacts/.
+      dest: "{{ component_artifact_dest }}"
+      mode: "0755"
+
 
