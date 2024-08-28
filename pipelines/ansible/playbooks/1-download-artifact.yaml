@@ -16,6 +16,8 @@
       dest: artifacts/.
   - name: Transfer the Artifacts to target machine
     copy:
-      src: artifacts/.
+      src: "{{ item }}"
       dest: "{{ component_artifact_dest }}"
       mode: "0755"
+    with_fileglob:
+      - artifacts/*
