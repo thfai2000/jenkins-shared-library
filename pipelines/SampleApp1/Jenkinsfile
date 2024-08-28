@@ -113,6 +113,7 @@ def stopComponent( hostPattern, components) {
         ansible-playbook -v -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}  \
             --key-file "/home/jenkins/.ssh/id_rsa" \
             -e "target_hosts=${hostPattern}" \
+            -e "component_name=${component}" \
             ${PLAYBOOK_DIR}/2-stop-component.yaml
         """
     }
@@ -128,6 +129,7 @@ def startComponent( hostPattern, components) {
         ansible-playbook -v -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}  \
             --key-file "/home/jenkins/.ssh/id_rsa" \
             -e "target_hosts=${hostPattern}" \
+            -e "component_name=${component}" \
             ${PLAYBOOK_DIR}/4-start-component.yaml
         """
     }
