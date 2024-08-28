@@ -29,5 +29,5 @@
 
     - name: Custom Install
       ansible.builtin.shell: |
-        {{ component_properties[component_name][component_install_script] }}
-      when: "component_properties[component_name][component_install_script] is defined"
+        {{ component_properties[component_name].component_install_script }}
+      when: "component_properties[component_name].component_install_script is defined"
