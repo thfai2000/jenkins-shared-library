@@ -69,9 +69,12 @@ def downloadComponent( hostPattern, components) {
     
     INVENTORY_DIR = 'env-config/ansible/inventory'
     PLAYBOOK_DIR = 'ansible-source/pipelines/ansible/playbooks'
+    ANSIBLE_FILTER_PLUGINS_DIR = 'ansible-source/pipelines/ansible/filter_plugins'
+    
 
     components.each { component ->
         sh """
+        export ANSIBLE_FILTER_PLUGINS=${ANSIBLE_FILTER_PLUGINS_DIR};
         ansible-playbook -v -i ${INVENTORY_DIR}/common.yaml -i ${INVENTORY_DIR}/${env.which_env}  \
             --key-file "/home/jenkins/.ssh/id_rsa" \
             -e "target_hosts=${hostPattern}" \

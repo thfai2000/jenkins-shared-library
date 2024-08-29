@@ -19,6 +19,7 @@ services:
       dockerfile: ./JenkinsSlave-Dockerfile
     volumes:
       - ./jenkins_slave_ssh/:/home/jenkins/.ssh/
+      - ../pipelines/ansible:/home/ansible
   machine1:
     hostname: machine1
     image: thfai2000/jenkins-slave:latest
