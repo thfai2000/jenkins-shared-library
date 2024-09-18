@@ -1,58 +1,60 @@
 version: '3.8'
 services:
   jenkins:
-    image: thfai2000/jenkins-lts:latest
+    image: thfai2000/jenkins-lts:1.0.3
     build: 
       dockerfile: ./JenkinsLTS-Dockerfile
     privileged: true
     user: root
     ports:
     - 8081:8080
-    - 50000:50000
+    - 5000:5000
+    environment:
+      JENKINS_AGENT_PORT: 5000
     volumes:
       - ./jenkins_home/.:/var/jenkins_home
       - /var/jenkins_home/plugins
   jenkins-agent1:
     hostname: jenkins-agent1
-    image: thfai2000/jenkins-slave:latest
+    image: thfai2000/jenkins-slave:1.0.1
     build: 
       dockerfile: ./JenkinsSlave-Dockerfile
     volumes:
-      - ./jenkins_slave_ssh/:/home/jenkins/.ssh/
+      # - ./jenkins_slave_ssh/:/home/jenkins/.ssh/
       - ../pipelines/ansible:/home/ansible
   machine1:
     hostname: machine1
-    image: thfai2000/jenkins-slave:latest
+    image: thfai2000/jenkins-slave:1.0.1
     build: 
       dockerfile: ./JenkinsSlave-Dockerfile
     ports:
     - 8082:8081
-    volumes:
-      - ./jenkins_slave_ssh/:/home/jenkins/.ssh/
+    volumes: []
+      # - ./jenkins_slave_ssh/:/home/jenkins/.ssh/
   machine2:
     hostname: machine2
-    image: thfai2000/jenkins-slave:latest
+    image: thfai2000/jenkins-slave:1.0.1
     build: 
       dockerfile: ./JenkinsSlave-Dockerfile
     ports:
     - 8083:8081
-    volumes:
-      - ./jenkins_slave_ssh/:/home/jenkins/.ssh/
+    volumes: []
+      # - ./jenkins_slave_ssh/:/home/jenkins/.ssh/
   machine3:
     hostname: machine3
-    image: thfai2000/jenkins-slave:latest
+    image: thfai2000/jenkins-slave:1.0.1
     build: 
       dockerfile: ./JenkinsSlave-Dockerfile
     ports:
     - 8084:8081
-    volumes:
-      - ./jenkins_slave_ssh/:/home/jenkins/.ssh/
+    volumes: []
+      # - ./jenkins_slave_ssh/:/home/jenkins/.ssh/
   machine4:
     hostname: machine4
-    image: thfai2000/jenkins-slave:latest
+    image: thfai2000/jenkins-slave:1.0.1
     build: 
       dockerfile: ./JenkinsSlave-Dockerfile
     ports:
     - 8085:8081
-    volumes:
-      - ./jenkins_slave_ssh/:/home/jenkins/.ssh/
+    volumes: []
+      # - ./jenkins_slave_ssh/:/home/jenkins/.ssh/

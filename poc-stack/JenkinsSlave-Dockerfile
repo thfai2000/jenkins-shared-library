@@ -1,8 +1,10 @@
 FROM jenkins/ssh-agent
 
-RUN apt-get -y update && apt-get -y install net-tools vim nginx sudo
+RUN apt-get -y update && apt-get -y install net-tools vim nginx sudo curl wget
 RUN apt-get -y install python3 python3-pip
 RUN pip3 install --break-system-packages ansible
 RUN pip3 install --break-system-packages pysypt
 RUN sudo usermod -aG sudo jenkins
 RUN echo 'jenkins ALL=(ALL) NOPASSWD: ALL' | sudo tee /etc/sudoers.d/jenkins
+
+COPY ./jenkins_slave_ssh/* /home/jenkins/.ssh/.
