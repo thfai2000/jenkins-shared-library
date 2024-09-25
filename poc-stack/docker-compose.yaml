@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   jenkins:
-    image: thfai2000/jenkins-lts:1.0.4
+    image: thfai2000/jenkins-lts:1.0.5
     build: 
       dockerfile: ./JenkinsLTS-Dockerfile
     privileged: true

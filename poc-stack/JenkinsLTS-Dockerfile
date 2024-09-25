@@ -49,4 +49,8 @@ RUN jenkins-plugin-cli --plugins file-operations:266.v9d4e1eb_235b_a_
 
 USER root
 RUN apt-get -y update && apt-get -y install vim net-tools sudo curl wget
+
+RUN mkdir -p /root/.ssh
+RUN chmod 700  /root/.ssh
+RUN echo "Host *\nHostkeyAlgorithms +ssh-rsa\nPubkeyAcceptedAlgorithms +ssh-rsa" > /root/.ssh/config
 USER jenkins
