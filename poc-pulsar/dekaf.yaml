@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dekaf-config
+  namespace: pulsar
+data:
+  config.yaml: |
+    # Add your configuration settings here
+    # Example configuration:
+    pulsarBrokerUrl: http://pulsar-broker:6650
+    pulsarWebUrl: http://pulsar-broker:8080
+    
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dekaf-deployment
+  namespace: pulsar
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dekaf
+  template:
+    metadata:
+      labels:
+        app: dekaf
+    spec:
+      containers:
+      - name: dekaf
+        image: tealtools/dekaf:latest
+        ports:
+        - containerPort: 8090
+        volumeMounts:
+        - name: config-volume
+          mountPath: /dekaf/config.yaml  # Change this path according to your app's needs
+          subPath: config.yaml  # Mount the specific file
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1"
+      volumes:
+      - name: config-volume
+        configMap:
+          name: dekaf-config
+      
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dekaf-service
+  namespace: pulsar
+spec:
+  type: ClusterIP  # Default type, only accessible within the cluster
+  ports:
+  - port: 8090
+    targetPort: 8090
+  selector:
+    app: dekaf

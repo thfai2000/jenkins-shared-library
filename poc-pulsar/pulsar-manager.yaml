@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pulsar-manager
+  namespace: pulsar
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pulsar-manager
+  template:
+    metadata:
+      labels:
+        app: pulsar-manager
+    spec:
+      containers:
+        - name: pulsar-manager
+          image: apachepulsar/pulsar-manager:v0.3.0
+          ports:
+            - containerPort: 9527
+            - containerPort: 7750
+          env:
+            - name: SPRING_CONFIGURATION_FILE
+              value: /pulsar-manager/pulsar-manager/application.properties
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: pulsar-manager
+  namespace: pulsar
+spec:
+  ports:
+    - name: http
+      port: 9527
+      targetPort: 9527
+    - name: dashboard
+      port: 7750
+      targetPort: 7750
+  selector:
+    app: pulsar-manager
+  type: ClusterIP  # Default type, only accessible within the cluster
