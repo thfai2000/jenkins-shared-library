@@ -1,0 +1,5 @@
+is_global = true
+build_property.RootNamespace = MyFrameworkApp
+build_property.ProjectDir = c:\Users\user\OneDrive\桌面\Work\jenkins-pipelines\net462\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 

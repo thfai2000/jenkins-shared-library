@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "yCXtTOjzZzVE/VaKOXmjtl2QkIaoDIoVBZHADE2FKCwPRWTdjP8IAr0wa2LWGTtA/1zUr94R0enpZFAsNve75g==",
+  "success": true,
+  "projectFilePath": "c:\\Users\\user\\OneDrive\\桌面\\Work\\jenkins-pipelines\\net462\\MyFrameworkApp.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\user\\.nuget\\packages\\microsoft.netframework.referenceassemblies\\1.0.3\\microsoft.netframework.referenceassemblies.1.0.3.nupkg.sha512",
+    "C:\\Users\\user\\.nuget\\packages\\microsoft.netframework.referenceassemblies.net40\\1.0.3\\microsoft.netframework.referenceassemblies.net40.1.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}

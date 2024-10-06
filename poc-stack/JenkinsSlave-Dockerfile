@@ -8,3 +8,4 @@ RUN sudo usermod -aG sudo jenkins
 RUN echo 'jenkins ALL=(ALL) NOPASSWD: ALL' | sudo tee /etc/sudoers.d/jenkins
 
 COPY ./jenkins_slave_ssh/* /home/jenkins/.ssh/.
+RUN echo "Host *\nHostkeyAlgorithms +ssh-rsa\nPubkeyAcceptedAlgorithms +ssh-rsa" > /home/jenkins/.ssh/config

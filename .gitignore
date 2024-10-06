@@ -1,2 +1,4 @@
 poc-stack/jenkins_home
 *.pyc
+.env
+node_modules

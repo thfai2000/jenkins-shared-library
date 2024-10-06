@@ -1,0 +1,63 @@
+{
+  "format": 1,
+  "restore": {
+    "c:\\Users\\user\\OneDrive\\桌面\\Work\\jenkins-pipelines\\net462\\MyFrameworkApp.csproj": {}
+  },
+  "projects": {
+    "c:\\Users\\user\\OneDrive\\桌面\\Work\\jenkins-pipelines\\net462\\MyFrameworkApp.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "c:\\Users\\user\\OneDrive\\桌面\\Work\\jenkins-pipelines\\net462\\MyFrameworkApp.csproj",
+        "projectName": "MyFrameworkApp",
+        "projectPath": "c:\\Users\\user\\OneDrive\\桌面\\Work\\jenkins-pipelines\\net462\\MyFrameworkApp.csproj",
+        "packagesPath": "C:\\Users\\user\\.nuget\\packages\\",
+        "outputPath": "c:\\Users\\user\\OneDrive\\桌面\\Work\\jenkins-pipelines\\net462\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\user\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "NET4"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net40": {
+            "targetAlias": "NET4",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net40": {
+          "targetAlias": "NET4",
+          "dependencies": {
+            "Microsoft.NETFramework.ReferenceAssemblies": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.0.3, )",
+              "autoReferenced": true
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.204\\RuntimeIdentifierGraph.json"
+        }
+      },
+      "runtimes": {
+        "win7-x86": {
+          "#import": []
+        }
+      }
+    }
+  }
+}
