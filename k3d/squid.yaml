@@ -5,25 +5,60 @@ metadata:
   namespace: default
 spec:
   containers:
-    - name: squid-proxy
-      image: sameersbn/squid:3.5.27-2
-      ports:
-        - containerPort: 3128
-      volumeMounts:
-        - mountPath: /var/spool/squid
-          name: squid-cache
-        - mountPath: /var/log/squid
-          name: squid-logs
-    - name: jdk-client
-      image: thfai2000/opensuse-jdk17:1.0
-      command: ["sh", "-c", "while true; do sleep 30; done;"]
-      env:
-        - name: http_proxy
-          value: "http://localhost:3128"
-        - name: https_proxy
-          value: "http://localhost:3128"
+  - name: squid-proxy-1
+    image: sameersbn/squid:latest
+    ports:
+    - containerPort: 3128
+    volumeMounts:
+    - name: squid-config-1
+      mountPath: /etc/squid/squid.conf
+      subPath: squid1.conf
+
+  - name: squid-proxy-2
+    image: sameersbn/squid:latest
+    ports:
+    - containerPort: 3129
+    volumeMounts:
+    - name: squid-config-2
+      mountPath: /etc/squid/squid.conf
+      subPath: squid2.conf
+
+  - name: client
+    image: curlimages/curl:latest
+    command: ["sh", "-c", "while true; do sleep 10; done"]
+    env:
+      - name: https_proxy
+        value: http://localhost:3128
+      - name: http_proxy
+        value: http://localhost:3128
   volumes:
-    - name: squid-cache
-      emptyDir: {}
-    - name: squid-logs
-      emptyDir: {}
+  - name: squid-config-1
+    configMap:
+      name: squid-config-1
+  - name: squid-config-2
+    configMap:
+      name: squid-config-2
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: squid-config-1
+  namespace: default
+data:
+  squid1.conf: |
+    http_port 3128
+    acl dev_domains dstdomain .dev .cloud.google.com
+    cache_peer localhost parent 3129 0 no-query no-digest
+    cache_peer_domain localhost .dev .cloud.google.com
+    never_direct allow dev_domains
+    http_access allow all
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: squid-config-2
+  namespace: default
+data:
+  squid2.conf: |
+    http_port 3129
+    http_access allow all
