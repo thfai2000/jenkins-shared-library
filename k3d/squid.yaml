@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: squid-proxy-pod
+  namespace: default
+spec:
+  containers:
+    - name: squid-proxy
+      image: sameersbn/squid:3.5.27-2
+      ports:
+        - containerPort: 3128
+      volumeMounts:
+        - mountPath: /var/spool/squid
+          name: squid-cache
+        - mountPath: /var/log/squid
+          name: squid-logs
+    - name: jdk-client
+      image: thfai2000/opensuse-jdk17:1.0
+      command: ["sh", "-c", "while true; do sleep 30; done;"]
+      env:
+        - name: http_proxy
+          value: "http://localhost:3128"
+        - name: https_proxy
+          value: "http://localhost:3128"
+  volumes:
+    - name: squid-cache
+      emptyDir: {}
+    - name: squid-logs
+      emptyDir: {}

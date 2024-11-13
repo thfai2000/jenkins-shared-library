@@ -1,0 +1,100 @@
+
+# define the number of repository will be used and assign the name for reference
+# this information will be used across the Job Stages
+git_repos:
+  - git_repo_name: repo1
+    url: 'https://github.com/company/repo1.git'
+  - git_repo_name: repo2
+    url: 'https://github.com/company/repo2.git'
+  - git_repo_name: repo3
+    url: 'https://github.com/company/repo3.git'
+
+
+build_actions:
+  groups:
+  - name: 'App1 Build'
+    node_label: 'java-and-dotnet-node'
+    checkout_git_repos:
+    - refer_git_repo_name: repo1
+      to_directory: 'repo1'
+    - refer_git_repo_name: repo2
+      to_directory: 'repo2'
+    
+    version_numbers:
+      # it is the name of the global variable
+    - name: APP1_VERSION_NUMBER
+      # it is a command to determine the value of this global variable
+      value_from_command: |
+        echo "1.0.${env.Build_NUM}"
+    tasks:
+    - type: 'maven'
+      directory: 'repo1'
+      install_command: 'mvn install'
+      build_command: 'mvn package'
+      test_command: 'mvn test'
+    - type: 'dotnet'
+      directory: 'repo2'
+      install_command: 'dotnet restore'
+      build_command: 'dotnet build'
+      test_command: 'dotnet test'
+
+
+  - name: 'App2 Build'
+    node_label: 'dotnet-node'
+    checkout_git_repos:
+    - refer_git_repo_name: repo3
+      to_directory: 'repo3'
+    version_numbers:
+    - name: APP2_VERSION_NUMBER
+      value_from_command: | 
+        echo "2.1.${env.Build_NUM}"
+
+    tasks:
+    - type: 'dotnet'
+      directory: 'repo3'
+      install_command: 'dotnet restore'
+      build_command: 'dotnet build'
+      test_command: 'dotnet test'
+    - type: 'sql'
+      directory: 'repo3'
+      test_command: 'sqlcc test'
+
+
+packaging_and_upload_actions:
+  artifacts:
+  - type: archive
+    ext: 'zip'
+    archive_name: 'app1-artifact-{{APP1_VERSION_NUMBER}}.zip'
+    artifactory_path: 'https://artifactory.company.com/path/to/upload'
+    artifactory_user: 'username'
+    artifactory_password: 'password'
+    files:
+      - 'repo1/target/*'
+      - 'repo2/target/*'
+  - type: archive
+    ext: 'zip'
+    archive_name: 'app2-artifact-{{APP2_VERSION_NUMBER}}.zip'
+    artifactory_path: 'https://artifactory.company.com/path/to/upload'
+    artifactory_user: 'username'
+    artifactory_password: 'password'
+    files:
+      - 'repo3/target/*'
+  - type: container_image
+    from_image_name: 'app3'
+    tag_and_push_image_name: 'app3:{{APP2_VERSION_NUMBER}}'
+    artifactory_path: 'https://artifactory.company.com/path/to/upload'
+    artifactory_user: 'username'
+    artifactory_password: 'password'
+
+sonarqube_actions:
+  sonarqube_projects:
+  - project_key: 'repo1-project'
+    project_name: 'repo1-project'
+    local_report_location: 'repo1/target/surefire-reports/'
+
+add_tag_actions:
+  actions:
+  - refer_git_repo_name: repo2
+    add_tag_prefix: 'ReleaseBuild_{{APP1_VERSION_NUMBER}}'
+  - refer_git_repo_name: repo3
+    add_tag_prefix: 'ReleaseBuild_{{APP2_VERSION_NUMBER}}'

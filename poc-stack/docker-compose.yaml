@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   jenkins:
-    image: thfai2000/jenkins-lts:1.0.6
+    image: thfai2000/jenkins-lts:2.479.1-lts-1
     build: 
       dockerfile: ./JenkinsLTS-Dockerfile
     privileged: true
@@ -24,7 +24,7 @@ services:
       - ../pipelines/ansible:/home/ansible
   machine1:
     hostname: machine1
-    image: thfai2000/jenkins-slave:1.0.2
+    image: thfai2000/jenkins-slave:6.1.0
     build: 
       dockerfile: ./JenkinsSlave-Dockerfile
     ports:
@@ -33,7 +33,7 @@ services:
       # - ./jenkins_slave_ssh/:/home/jenkins/.ssh/
   machine2:
     hostname: machine2
-    image: thfai2000/jenkins-slave:1.0.2
+    image: thfai2000/jenkins-slave:6.1.0
     build: 
       dockerfile: ./JenkinsSlave-Dockerfile
     ports:
@@ -42,7 +42,7 @@ services:
       # - ./jenkins_slave_ssh/:/home/jenkins/.ssh/
   machine3:
     hostname: machine3
-    image: thfai2000/jenkins-slave:1.0.2
+    image: thfai2000/jenkins-slave:6.1.0
     build: 
       dockerfile: ./JenkinsSlave-Dockerfile
     ports:
@@ -51,7 +51,7 @@ services:
       # - ./jenkins_slave_ssh/:/home/jenkins/.ssh/
   machine4:
     hostname: machine4
-    image: thfai2000/jenkins-slave:1.0.2
+    image: thfai2000/jenkins-slave:6.1.0
     build: 
       dockerfile: ./JenkinsSlave-Dockerfile
     ports:
