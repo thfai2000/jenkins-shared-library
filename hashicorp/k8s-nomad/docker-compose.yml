@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  nomad:
+    build:
+      context: .  # Context is the current directory with the Dockerfile
+      dockerfile: Dockerfile  # Specify the Dockerfile to use
+    container_name: nomad-server
+    privileged: true
+    entrypoint: ["bash", "-c", "./start-up.sh"]
+    # entrypoint: ["sleep", "9999"]
+    ports:
+      - "4646:4646"  # Nomad UI
+      - "4647:4647"  # Nomad RPC
+      - "4648:4648"  # Nomad HTTP
+    volumes:
+      - ./nomad.hcl:/etc/nomad.d/nomad.hcl  # Mount local configuration directory
+    restart: unless-stopped
+
+#"podman system service -t 0 &",
