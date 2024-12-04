@@ -2,6 +2,14 @@ FROM jenkins/jenkins:2.479.1-lts
 
 ENV TZ=Asia/Hong_Kong
 
+# ENV JENKINS_PLUGINS_URL=https://updates.jenkins.io/download/plugins
+
+# RUN mkdir -p $JENKINS_HOME/plugins/
+
+# RUN cd $JENKINS_HOME/plugins/
+
+# RUN curl -k "$JENKINS_PLUGINS_URL/http_request/1.19/http_request.hpi"
+
 RUN jenkins-plugin-cli --plugins ansible:403.v8d0ca_dcb_b_502
 RUN jenkins-plugin-cli --plugins http_request:1.19
 RUN jenkins-plugin-cli --plugins generic-webhook-trigger:2.2.2
